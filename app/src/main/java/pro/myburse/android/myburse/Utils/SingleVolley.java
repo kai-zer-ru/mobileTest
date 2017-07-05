@@ -1,4 +1,4 @@
-package pro.myburse.android.myburse;
+package pro.myburse.android.myburse.Utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;

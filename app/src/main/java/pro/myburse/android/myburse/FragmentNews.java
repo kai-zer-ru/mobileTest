@@ -4,26 +4,23 @@ package pro.myburse.android.myburse;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
@@ -32,10 +29,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 
+import pro.myburse.android.myburse.Utils.OttoMessage;
+import pro.myburse.android.myburse.Utils.SingleVolley;
 import pro.myburse.android.myburse.json.New;
 
 /**
@@ -46,9 +43,13 @@ public class FragmentNews extends Fragment {
 
     private App mApp;
     private Bus Otto;
+    private ArrayList<New> News;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView mRV;
 
 
     public FragmentNews(){
+        News = new ArrayList<>();
     }
 
     public static FragmentNews getInstance(){
@@ -69,6 +70,17 @@ public class FragmentNews extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View viewRoot = inflater.inflate(R.layout.fragment_news,container,false);
+
+        mRV = viewRoot.findViewById(R.id.rv);
+        GridLayoutManager glm = new GridLayoutManager(getContext(),2);
+        mRV.setLayoutManager(glm);
+        swipeRefreshLayout = viewRoot.findViewById(R.id.srl);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Toast.makeText(getContext(), "тут SWIPE_REFRESH", Toast.LENGTH_SHORT).show();
+            }
+        });
         return viewRoot;
     }
 
@@ -80,40 +92,37 @@ public class FragmentNews extends Fragment {
         Otto.register(this);
     }
 
-    @Subscribe
-    public void setLocation(Location location){
-        getNews(location);
-    }
 
     @Subscribe
-    public void OttoDispatch(String action){
-        switch (action){
-            case "no_location":{
-                getNews(null);
+    public void OttoDispatch(OttoMessage msg){
+        switch (msg.getAction()){
+            case "getNews":{
+                updateNews((Location) msg.getData());
             }
             default:{
 
             }
         }
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         Otto.unregister(this);
     }
 
-    private void getNews(final Location location){
+    private void updateNews(final Location location){
 
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
+
         builder.appendQueryParameter("method","getNews");
-        builder.appendQueryParameter("types","all");
-        builder.appendQueryParameter("news_types","all");
+        builder.appendQueryParameter("news_types",New.TYPE_PRODUCT+","+New.TYPE_WALL+","+New.TYPE_BLOG);
         if (location != null) {
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
         }
-        builder.appendQueryParameter("order","time_start-desc");
-        builder.appendQueryParameter("action_type","all");
+        //builder.appendQueryParameter("order","time_start-desc");
+        //builder.appendQueryParameter("action_type","all");
 
         String newsUrl=builder.build().toString();
 
@@ -128,8 +137,9 @@ public class FragmentNews extends Fragment {
                         JsonElement mJson =  parser.parse(items.get(i).toString());
                         Gson gson = new Gson();
                         New object = gson.fromJson(mJson, New.class);
+                        News.add(object);
                     }
-                    Integer count = response.getInt("count_all");
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

@@ -28,3 +28,7 @@
     @com.squareup.otto.Subscribe public *;
     @com.squareup.otto.Produce public *;
 }
+-keep class .R
+-keep class **.R$* {
+    <fields>;
+}
