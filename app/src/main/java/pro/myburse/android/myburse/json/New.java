@@ -29,6 +29,7 @@ public class New {
     private String owner_name;
     private String owner_url;
     private String owner_avatar;
+
     private String item_type;
     private String product_type;
     private float distance;

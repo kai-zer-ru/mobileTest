@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
@@ -44,8 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Drawer mDrawer;
     private Bus Otto;
-    private FusedLocationProviderClient mFusedLocationClient;
-    private final int PERMISSION_REQUEST_ACCESS_LOCATION = 0;
+
     private App mApp;
     private Toolbar toolbar;
 
@@ -61,15 +62,15 @@ public class MainActivity extends AppCompatActivity {
 // icon account_unregistered
         Drawable icon_acc = new IconicsDrawable(this)
                 .icon(CommunityMaterial.Icon.cmd_account)
-                .color(Color.WHITE)
-                .sizeDp(6);
+                .color(Color.WHITE);
+                //.sizeDp(10);
 
         Drawable icon_news = new IconicsDrawable(this)
                 .icon(CommunityMaterial.Icon.cmd_information)
                 //.backgroundColor(ContextCompat.getColor(this,R.color.md_grey_200))
                 .color(Color.GRAY);
         Drawable icon_shops = new IconicsDrawable(this)
-                .icon(CommunityMaterial.Icon.cmd_shopping)
+                .icon(CommunityMaterial.Icon.cmd_store)
                 //.backgroundColor(ContextCompat.getColor(this,R.color.md_grey_200))
                 .color(Color.GRAY);
         Drawable icon_blogs = new IconicsDrawable(this)
@@ -175,17 +176,9 @@ public class MainActivity extends AppCompatActivity {
                     .beginTransaction()
                     .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
                     .commit();
-        }
-
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSION_REQUEST_ACCESS_LOCATION);
         } else {
-            getCurrentLocation();
+            Otto.post(new OttoMessage("getNews",null));
         }
-
 
     }
     @Override
@@ -195,47 +188,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_ACCESS_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    getCurrentLocation();
-                } else {
-                    Otto.post(new OttoMessage("getNews", null));
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-
-    public void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        mFusedLocationClient.getLastLocation()
-            .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    // Got last known location. In some rare situations this can be null.
-                    if (location != null) {
-                        Otto.post(new OttoMessage("getNews",location));
-                    }
-                }
-            });
     }
 
 }
