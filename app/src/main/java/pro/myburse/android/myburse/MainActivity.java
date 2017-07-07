@@ -140,7 +140,8 @@ public class MainActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Toast.makeText(MainActivity.this, "Fragment SHOPS", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(MainActivity.this, "Fragment SHOPS", Toast.LENGTH_SHORT).show();
+                        getShops();
                         return false;
                     }
                 });
@@ -181,6 +182,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    private void getShops(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentByTag(FragmentShops.class.getSimpleName());
+
+        if (fragment==null) {
+            fragment = FragmentShops.getInstance();
+
+            fragmentManager
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
+                    .commit();
+        } else {
+            Otto.post(new OttoMessage("getShops",null));
+        }
+
+    }
+
     @Override
     public void onBackPressed() {
         if (mDrawer.isDrawerOpen()) {

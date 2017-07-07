@@ -13,7 +13,7 @@
         android:padding="@dimen/material_drawer_item_padding">
 
         <com.android.volley.toolbox.NetworkImageView
-            android:id="@+id/new_owner_img"
+            android:id="@+id/shop_owner_img"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -23,77 +23,76 @@
             android:minWidth="50dp" />
 
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_owner_name"
+            android:id="@+id/shop_owner_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/material_drawer_item_padding"
             android:layout_marginStart="@dimen/material_drawer_item_padding"
-            android:layout_toEndOf="@+id/new_owner_img"
-            android:layout_toRightOf="@+id/new_owner_img"
+            android:layout_toEndOf="@+id/shop_owner_img"
+            android:layout_toRightOf="@+id/shop_owner_img"
             android:text="Owner Name"
             android:textColor="@color/material_drawer_primary_text"
             />
 
-        <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_item_type"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/new_owner_name"
-            android:layout_alignStart="@+id/new_owner_name"
-            android:layout_below="@+id/new_owner_name"
-            android:layout_marginTop="@dimen/material_drawer_item_padding"
-            android:text="Item Type"
-            android:textColor="@color/material_drawer_primary_text"
-            />
+
 
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_date_add"
+            android:id="@+id/shop_date_add"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_below="@+id/new_owner_name"
+            android:layout_below="@+id/shop_owner_name"
             android:text="10.10.2017"
             android:textColor="@color/material_drawer_primary_text"
             />
 
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_title"
+            android:id="@+id/shop_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/new_owner_img"
+            android:layout_below="@+id/shop_owner_img"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:layout_centerHorizontal="true"
             android:text="Title"
             android:textColor="@color/material_drawer_primary_text"
             />
         <com.android.volley.toolbox.NetworkImageView
-            android:id="@+id/new_img"
+            android:id="@+id/shop_img"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/new_title"
+            android:layout_below="@+id/shop_title"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
 
             />
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_preview"
+            android:id="@+id/shop_preview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/new_img"
+            android:layout_below="@+id/shop_img"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
             android:text="Preview"
             android:textColor="@color/material_drawer_primary_text"
             />
+        <me.zhanghai.android.materialratingbar.MaterialRatingBar
+            android:id="@+id/shop_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/shop_preview"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="@dimen/material_drawer_item_padding"
+            style="@style/Widget.MaterialRatingBar.RatingBar.Small"/>
         <com.mikepenz.iconics.view.IconicsTextView
-            android:id="@+id/ic_counters"
+            android:id="@+id/shop_counters"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_below="@+id/new_preview"
+            android:layout_below="@+id/shop_preview"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:textSize="16sp"
             android:text="{faw-comment}100 {faw-heart}100"

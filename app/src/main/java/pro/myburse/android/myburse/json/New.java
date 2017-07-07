@@ -18,21 +18,23 @@ public class New {
     public static String PRODUCT_ADVERT = "advert";
 
     private long id;
-    private String type;
     private String title;
     private String text;
     private String date_add;
     private String image;
+    private int image_width;
+    private int image_height;
     private String url;
     private double latitude;
     private double longitude;
+    private double distance;
+    private double owner_id;
     private String owner_name;
     private String owner_url;
     private String owner_avatar;
 
     private String item_type;
     private String product_type;
-    private float distance;
     private int comments_count;
     private int likes_count;
     private int reposts_count;
@@ -48,14 +50,6 @@ public class New {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getTitle() {
@@ -90,6 +84,22 @@ public class New {
         this.image = image;
     }
 
+    public int getImage_width() {
+        return image_width;
+    }
+
+    public void setImage_width(int image_width) {
+        this.image_width = image_width;
+    }
+
+    public int getImage_height() {
+        return image_height;
+    }
+
+    public void setImage_height(int image_height) {
+        this.image_height = image_height;
+    }
+
     public String getUrl() {
         return url;
     }
@@ -112,6 +122,14 @@ public class New {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public double getOwner_id() {
+        return owner_id;
+    }
+
+    public void setOwner_id(double owner_id) {
+        this.owner_id = owner_id;
     }
 
     public String getOwner_name() {
@@ -154,11 +172,11 @@ public class New {
         this.product_type = product_type;
     }
 
-    public float getDistance() {
+    public double getDistance() {
         return distance;
     }
 
-    public void setDistance(float distance) {
+    public void setDistance(double distance) {
         this.distance = distance;
     }
 

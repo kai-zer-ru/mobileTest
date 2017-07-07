@@ -18,4 +18,22 @@
         android:layout_alignParentTop="true"
         />
     </android.support.v4.widget.SwipeRefreshLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="@dimen/material_drawer_item_padding"
+        android:layout_marginRight="@dimen/material_drawer_item_padding"
+        android:visibility="visible"
+        app:backgroundTint="@color/md_grey_300"
+        app:elevation="@dimen/cardview_default_elevation"
+        app:fabSize="normal"
+        app:borderWidth="0dp"
+        app:rippleColor="@android:color/holo_orange_dark"
+        app:srcCompat="@drawable/ic_action_up" />
+
 </RelativeLayout>

@@ -13,22 +13,18 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.NetworkImageView;
 import com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
@@ -48,24 +44,24 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import pro.myburse.android.myburse.UI.AdapterNews;
+import pro.myburse.android.myburse.UI.AdapterShops;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.json.New;
+import pro.myburse.android.myburse.json.Shop;
 
 /**
  * Created by alexey on 04.07.17.
  */
 
-public class FragmentNews extends Fragment implements ObservableScrollViewCallbacks{
+public class FragmentShops extends Fragment implements ObservableScrollViewCallbacks{
 
     private App mApp;
     private Bus Otto;
-    private ArrayList<New> mNews;
+    private ArrayList<Shop> mShops;
     private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton mFabUp;
     private ObservableRecyclerView mRV;
-    private AdapterNews mAdapter;
+    private AdapterShops mAdapter;
     private FusedLocationProviderClient mFusedLocationClient;
     private final int PERMISSION_REQUEST_ACCESS_LOCATION = 0;
     private  LinearLayoutManager linearLayoutManager;
@@ -73,14 +69,14 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     private boolean isLoading = false;
 
 
-    public FragmentNews(){
-       mNews = new ArrayList<>();
+    public FragmentShops(){
+       mShops = new ArrayList<>();
     }
 
-    public static FragmentNews getInstance(){
+    public static FragmentShops getInstance(){
         Bundle args = new Bundle();
         //args.putSerializable(KEY_ORDER, o);
-        FragmentNews fragment = new FragmentNews();
+        FragmentShops fragment = new FragmentShops();
         fragment.setArguments(args);
         return fragment;
     }
@@ -104,7 +100,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         linearLayoutManager= new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRV.setLayoutManager(linearLayoutManager);
-        mAdapter = new AdapterNews(mNews);
+        mAdapter = new AdapterShops(mShops);
         //mAdapter.setMode(Attributes.Mode.Single);
         mRV.setAdapter(mAdapter);
         mRV.setScrollViewCallbacks(this);
@@ -113,7 +109,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mNews.clear();
+                mShops.clear();
                 mAdapter.notifyDataSetChanged();
                 getCurrentLocation();
             }
@@ -136,13 +132,13 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
 
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
-        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSION_REQUEST_ACCESS_LOCATION);
         } else {
             swipeRefreshLayout.setRefreshing(true);
-            mNews.clear();
+            mShops.clear();
             mAdapter.notifyDataSetChanged();
             getCurrentLocation();
         }
@@ -157,7 +153,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     getCurrentLocation();
                 } else {
-                    updateNews(null);
+                    updateShops(null);
                 }
                 return;
             }
@@ -167,9 +163,9 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     @Subscribe
     public void OttoDispatch(OttoMessage msg){
         switch (msg.getAction()){
-            case "getNews":{
+            case "getShops":{
                 swipeRefreshLayout.setRefreshing(true);
-                mNews.clear();
+                mShops.clear();
                 mAdapter.notifyDataSetChanged();
                 getCurrentLocation();
             }
@@ -186,10 +182,10 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     }
 
 
-    private void updateNews(final Location location){
+    private void updateShops(final Location location){
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","getNews");
+        builder.appendQueryParameter("method","getShops");
         if (location != null) {
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
@@ -206,8 +202,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                         JsonParser parser = new JsonParser();
                         JsonElement mJson =  parser.parse(items.get(i).toString());
                         Gson gson = new Gson();
-                        New object = gson.fromJson(mJson, New.class);
-                        mNews.add(object);
+                        Shop object = gson.fromJson(mJson, Shop.class);
+                        mShops.add(object);
                     }
                     mAdapter.notifyDataSetChanged();
                     swipeRefreshLayout.setRefreshing(false);
@@ -225,7 +221,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         SingleVolley.getInstance(getContext()).addToRequestQueue(request);
     }
 
-    private void updateNews(final Location location, Long previous_id){
+    private void updateShops(final Location location, Long previous_id){
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
         builder.appendQueryParameter("method","getNews");
@@ -248,8 +244,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                         JsonParser parser = new JsonParser();
                         JsonElement mJson =  parser.parse(items.get(i).toString());
                         Gson gson = new Gson();
-                        New object = gson.fromJson(mJson, New.class);
-                        mNews.add(object);
+                        Shop object = gson.fromJson(mJson, Shop.class);
+                        mShops.add(object);
                     }
                     mAdapter.notifyDataSetChanged();
                     swipeRefreshLayout.setRefreshing(false);
@@ -278,14 +274,14 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                 .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
-                        updateNews(location);
+                        FragmentShops.this.updateShops(location);
                     }
 
                 })
                 .addOnFailureListener(getActivity(), new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        updateNews(null);
+                        FragmentShops.this.updateShops(null);
                     }
 
                 });
@@ -301,8 +297,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             if (!isLoading) {
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
                     isLoading=true;
-                    Log.wtf("onScrollChanged","Update news last_news_id = "+mNews.get(mNews.size() - 1).getId());
-                    updateNews(mCurrentLocation, mNews.get(mNews.size() - 1).getId());
+                    Log.wtf("onScrollChanged","Update news last_news_id = "+mShops.get(mShops.size() - 1).getId());
+                    updateShops(mCurrentLocation, mShops.get(mShops.size() - 1).getId());
                 }
             }
         }

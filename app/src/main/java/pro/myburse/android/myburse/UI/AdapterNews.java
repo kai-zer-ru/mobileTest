@@ -1,6 +1,8 @@
 package pro.myburse.android.myburse.UI;
 
 import android.content.Context;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.CardView;
@@ -8,7 +10,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
@@ -51,6 +56,29 @@ public class AdapterNews extends RecyclerView.Adapter<AdapterNews.NewViewHolder>
         holder.mItemType.setText(mNew.getItem_type());
         holder.mDateAdd.setText(mNew.getDate_add());
         holder.mTitle.setText(mNew.getTitle());
+        holder.mImage.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+
+        final ViewTreeObserver observer = holder.mImage.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    holder.mImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                } else {
+                    holder.mImage.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
+                int width = holder.mImage.getWidth();
+                if (width < mNew.getImage_width()) {
+                    double ratio = (double) mNew.getImage_width() / (double) mNew.getImage_height();
+                    holder.mImage.getLayoutParams().width = width;
+                    holder.mImage.getLayoutParams().height = (int) (width / ratio);
+                }else{
+                    holder.mImage.getLayoutParams().height = mNew.getImage_height();
+                    holder.mImage.getLayoutParams().width = mNew.getImage_width();
+                }
+
+            }
+        });
         holder.mImage.setImageUrl(mNew.getImage(),SingleVolley.getInstance(mContext).getImageLoader());
         holder.mPreview.setText(mNew.getText());
         holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mNew.getComments_count(),mNew.getLikes_count()));
