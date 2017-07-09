@@ -1,18 +1,17 @@
 package pro.myburse.android.myburse.UI;
 
 import android.content.Context;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.RelativeLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.volley.toolbox.NetworkImageView;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.mikepenz.iconics.view.IconicsTextView;
 
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import me.zhanghai.android.materialratingbar.MaterialRatingBar;
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.json.New;
 import pro.myburse.android.myburse.json.Shop;
 
 /**
@@ -46,33 +44,35 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
     @Override
     public void onBindViewHolder(final ShopViewHolder holder, int position) {
         final Shop mShop = mShops.get(position);
-        holder.mOwnerImage.setImageUrl(mShop.getOwner_avatar(), SingleVolley.getInstance(mContext).getImageLoader());
+
+        ImageLoader imageLoader = SingleVolley.getInstance(mContext).getImageLoader();
+
+        imageLoader.get(mShop.getOwner_avatar(), new ImageLoader.ImageListener() {
+            @Override
+            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                holder.mOwnerImage.setImageBitmap(response.getBitmap());
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
+            }
+        });
+//        holder.mOwnerImage.setImageUrl(mShop.getOwner_avatar(), SingleVolley.getInstance(mContext).getImageLoader());
         holder.mOwnerName.setText(mShop.getOwner_name());
         holder.mDateAdd.setText(mShop.getDate_add());
         holder.mTitle.setText(mShop.getTitle());
-        holder.mImage.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
-        final ViewTreeObserver observer = holder.mImage.getViewTreeObserver();
-        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        imageLoader.get(mShop.getImage(), new ImageLoader.ImageListener() {
             @Override
-            public void onGlobalLayout() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    holder.mImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                } else {
-                    holder.mImage.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                }
-                int width = holder.mImage.getWidth();
-                if (width < mShop.getImage_width()) {
-                    double ratio = (double) mShop.getImage_width() / (double) mShop.getImage_height();
-                    holder.mImage.getLayoutParams().width = width;
-                    holder.mImage.getLayoutParams().height = (int) (width / ratio);
-                }else{
-                    holder.mImage.getLayoutParams().height = mShop.getImage_height();
-                    holder.mImage.getLayoutParams().width = mShop.getImage_width();
-                }
+            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                holder.mImage.setImageBitmap(response.getBitmap());
+            }
 
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-        holder.mImage.setImageUrl(mShop.getImage(),SingleVolley.getInstance(mContext).getImageLoader());
         holder.mPreview.setText(mShop.getText());
         holder.mRating.setNumStars(5);
         holder.mRating.setRating(mShop.getRating());
@@ -89,11 +89,11 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
     static class ShopViewHolder extends RecyclerView.ViewHolder{
 
         CardView cv;
-        NetworkImageView mOwnerImage;
+        ImageView mOwnerImage;
         TextView mOwnerName;
         TextView mDateAdd;
         TextView mTitle;
-        NetworkImageView mImage;
+        ImageView mImage;
         TextView mPreview;
         MaterialRatingBar mRating;
         IconicsTextView mCounters;

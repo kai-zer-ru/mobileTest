@@ -28,7 +28,7 @@
         android:layout_alignParentRight="true"
         android:layout_marginBottom="@dimen/material_drawer_item_padding"
         android:layout_marginRight="@dimen/material_drawer_item_padding"
-        android:visibility="visible"
+        android:layout_marginEnd="@dimen/material_drawer_item_padding"
         app:backgroundTint="@color/md_grey_300"
         app:elevation="@dimen/cardview_default_elevation"
         app:fabSize="normal"

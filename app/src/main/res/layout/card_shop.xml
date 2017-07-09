@@ -12,15 +12,15 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/material_drawer_item_padding">
 
-        <com.android.volley.toolbox.NetworkImageView
+        <ImageView
             android:id="@+id/shop_owner_img"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:minHeight="50dp"
-            android:minWidth="50dp" />
+            android:adjustViewBounds="true"
+            />
 
         <android.support.v7.widget.AppCompatTextView
             android:id="@+id/shop_owner_name"
@@ -51,19 +51,21 @@
             android:id="@+id/shop_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/shop_owner_img"
+            android:layout_below="@+id/shop_date_add"
+            android:textStyle="bold"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:layout_centerHorizontal="true"
             android:text="Title"
             android:textColor="@color/material_drawer_primary_text"
             />
-        <com.android.volley.toolbox.NetworkImageView
+        <ImageView
             android:id="@+id/shop_img"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/shop_title"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
+            android:adjustViewBounds="true"
 
             />
         <android.support.v7.widget.AppCompatTextView

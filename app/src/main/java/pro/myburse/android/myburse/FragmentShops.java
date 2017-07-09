@@ -3,6 +3,7 @@ package pro.myburse.android.myburse;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -68,23 +69,18 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
     private Location mCurrentLocation;
     private boolean isLoading = false;
 
-
     public FragmentShops(){
        mShops = new ArrayList<>();
     }
 
     public static FragmentShops getInstance(){
-        Bundle args = new Bundle();
-        //args.putSerializable(KEY_ORDER, o);
         FragmentShops fragment = new FragmentShops();
-        fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setRetainInstance(true);
         mApp = (App) getActivity().getApplication();
         Otto = mApp.getOtto();
@@ -123,26 +119,33 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
                 linearLayoutManager.scrollToPositionWithOffset(0,0);
             }
         });
+        mFabUp.hide();
         return viewRoot;
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
-        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSION_REQUEST_ACCESS_LOCATION);
-        } else {
-            swipeRefreshLayout.setRefreshing(true);
-            mShops.clear();
-            mAdapter.notifyDataSetChanged();
-            getCurrentLocation();
+        if (savedInstanceState == null){
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
+            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSION_REQUEST_ACCESS_LOCATION);
+            } else {
+                swipeRefreshLayout.setRefreshing(true);
+                mShops.clear();
+                mAdapter.notifyDataSetChanged();
+                getCurrentLocation();
+            }
         }
-
     }
 
     @Override
@@ -266,6 +269,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
     }
 
     public void getCurrentLocation() {
+        mFabUp.hide();
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -289,14 +293,21 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
 
     @Override
     public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
+        if(scrollY<0) {
+            if (linearLayoutManager.findFirstVisibleItemPosition() > 0) {
+                mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
+            } else {
+                mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
+            }
+        }
         if(scrollY > 0) {
+            int pastVisiblesItems = linearLayoutManager.findFirstVisibleItemPosition();
             int visibleItemCount = linearLayoutManager.getChildCount();
             int totalItemCount = linearLayoutManager.getItemCount();
-            int pastVisiblesItems = linearLayoutManager.findFirstVisibleItemPosition();
-
             if (!isLoading) {
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
                     isLoading=true;
+                    mFabUp.hide();
                     Log.wtf("onScrollChanged","Update news last_news_id = "+mShops.get(mShops.size() - 1).getId());
                     updateShops(mCurrentLocation, mShops.get(mShops.size() - 1).getId());
                 }
@@ -314,7 +325,12 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         if (scrollState==ScrollState.UP) {
             mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
         }else if (scrollState==ScrollState.DOWN) {
-            mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
+            if (linearLayoutManager.findLastVisibleItemPosition()>0) {
+                mFabUp.show();
+                mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
+            }else{
+                mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
+            }
         }
     }
 }

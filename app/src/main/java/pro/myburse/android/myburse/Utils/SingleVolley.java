@@ -22,11 +22,13 @@ public class SingleVolley {
     private SingleVolley(Context context) {
         mCtx = context;
         mRequestQueue = getRequestQueue();
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+        final int cacheSize = maxMemory / 8;
 
         mImageLoader = new ImageLoader(mRequestQueue,
                 new ImageLoader.ImageCache() {
                     private final LruCache<String, Bitmap>
-                            cache = new LruCache<String, Bitmap>(20);
+                            cache = new LruCache<String, Bitmap>(cacheSize);
 
                     @Override
                     public Bitmap getBitmap(String url) {

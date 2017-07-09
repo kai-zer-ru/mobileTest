@@ -13,22 +13,18 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.NetworkImageView;
 import com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
@@ -78,17 +74,13 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     }
 
     public static FragmentNews getInstance(){
-        Bundle args = new Bundle();
-        //args.putSerializable(KEY_ORDER, o);
         FragmentNews fragment = new FragmentNews();
-        fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setRetainInstance(true);
         mApp = (App) getActivity().getApplication();
         Otto = mApp.getOtto();
@@ -99,7 +91,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View viewRoot = inflater.inflate(R.layout.fragment_news,container,false);
-
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
         mRV = viewRoot.findViewById(R.id.rv);
         linearLayoutManager= new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -127,24 +119,24 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                 linearLayoutManager.scrollToPositionWithOffset(0,0);
             }
         });
+        mFabUp.hide();
         return viewRoot;
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
-        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSION_REQUEST_ACCESS_LOCATION);
-        } else {
-            swipeRefreshLayout.setRefreshing(true);
-            mNews.clear();
-            mAdapter.notifyDataSetChanged();
-            getCurrentLocation();
+        if (savedInstanceState==null) {
+            if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSION_REQUEST_ACCESS_LOCATION);
+            } else {
+                swipeRefreshLayout.setRefreshing(true);
+                mNews.clear();
+                mAdapter.notifyDataSetChanged();
+                getCurrentLocation();
+            }
         }
 
     }
@@ -184,7 +176,6 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         super.onDestroy();
         Otto.unregister(this);
     }
-
 
     private void updateNews(final Location location){
         mCurrentLocation=location;
@@ -270,6 +261,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     }
 
     public void getCurrentLocation() {
+        mFabUp.hide();
+
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -293,6 +286,14 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
 
     @Override
     public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
+        //mFabUp.show();
+        if(scrollY<0) {
+            if (linearLayoutManager.findFirstVisibleItemPosition() > 0) {
+                mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
+            } else {
+                mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
+            }
+        }
         if(scrollY > 0) {
             int visibleItemCount = linearLayoutManager.getChildCount();
             int totalItemCount = linearLayoutManager.getItemCount();
@@ -300,6 +301,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
 
             if (!isLoading) {
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
+                    mFabUp.hide();
                     isLoading=true;
                     Log.wtf("onScrollChanged","Update news last_news_id = "+mNews.get(mNews.size() - 1).getId());
                     updateNews(mCurrentLocation, mNews.get(mNews.size() - 1).getId());
@@ -318,7 +320,12 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         if (scrollState==ScrollState.UP) {
             mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
         }else if (scrollState==ScrollState.DOWN) {
-            mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
+            if (linearLayoutManager.findFirstVisibleItemPosition()>0) {
+                mFabUp.show();
+                mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
+            }else{
+                mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
+            }
         }
     }
 }

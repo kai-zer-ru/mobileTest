@@ -1,27 +1,15 @@
 package pro.myburse.android.myburse;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.AccountHeader;
@@ -33,8 +21,6 @@ import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import com.squareup.otto.Bus;
-import com.squareup.otto.Produce;
-import com.squareup.otto.ThreadEnforcer;
 
 import pro.myburse.android.myburse.Utils.OttoMessage;
 
@@ -140,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        //Toast.makeText(MainActivity.this, "Fragment SHOPS", Toast.LENGTH_SHORT).show();
                         getShops();
                         return false;
                     }
@@ -162,25 +147,32 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         mDrawer.addItem(primaryDrawerItem);
-
-        getNews();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (fragmentManager.getBackStackEntryCount()==0) {
+            getNews();
+        }
+    }
+
 
     private void getNews(){
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment fragment = fragmentManager.findFragmentByTag(FragmentNews.class.getSimpleName());
-
         if (fragment==null) {
+            fragmentManager.popBackStack();
             fragment = FragmentNews.getInstance();
-
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
+                    .addToBackStack(fragment.getClass().getSimpleName())
                     .commit();
         } else {
             Otto.post(new OttoMessage("getNews",null));
         }
-
     }
 
     private void getShops(){
@@ -188,11 +180,13 @@ public class MainActivity extends AppCompatActivity {
         Fragment fragment = fragmentManager.findFragmentByTag(FragmentShops.class.getSimpleName());
 
         if (fragment==null) {
+            fragmentManager.popBackStack();
             fragment = FragmentShops.getInstance();
 
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
+                    .addToBackStack(fragment.getClass().getSimpleName())
                     .commit();
         } else {
             Otto.post(new OttoMessage("getShops",null));
