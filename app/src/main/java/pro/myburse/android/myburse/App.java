@@ -1,14 +1,7 @@
 package pro.myburse.android.myburse;
 
-import android.Manifest;
 import android.app.Application;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.support.v4.app.ActivityCompat;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
@@ -18,8 +11,8 @@ import com.squareup.otto.ThreadEnforcer;
 
 public class App extends Application {
 
-    public static String URL_BASE = "https://api.myburse.pro/";
-
+    public final static String URL_BASE = "https://api.myburse.pro/";
+    public final static int COUNT_CARDS=20;
     private static Bus Otto;
 
 

@@ -1,8 +1,10 @@
 package pro.myburse.android.myburse.UI;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -73,7 +75,11 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-        holder.mPreview.setText(mShop.getText());
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N) {
+            holder.mPreview.setText(Html.fromHtml(mShop.getText().toString(), Html.FROM_HTML_MODE_COMPACT));
+        }else{
+            holder.mPreview.setText(Html.fromHtml(mShop.getText().toString()));
+        }
         holder.mRating.setNumStars(5);
         holder.mRating.setRating(mShop.getRating());
         //holder.mRating

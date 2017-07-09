@@ -228,6 +228,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
         builder.appendQueryParameter("method","getNews");
+        //TODO добавить App.COUNT_CARDS
         if (location != null) {
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
@@ -305,7 +306,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
             int visibleItemCount = linearLayoutManager.getChildCount();
             int totalItemCount = linearLayoutManager.getItemCount();
             if (!isLoading) {
-                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
+                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-10) {
                     isLoading=true;
                     mFabUp.hide();
                     Log.wtf("onScrollChanged","Update news last_news_id = "+mShops.get(mShops.size() - 1).getId());

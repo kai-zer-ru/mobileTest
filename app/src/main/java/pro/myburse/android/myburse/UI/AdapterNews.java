@@ -1,8 +1,10 @@
 package pro.myburse.android.myburse.UI;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -72,7 +74,12 @@ public class AdapterNews extends RecyclerView.Adapter<AdapterNews.NewViewHolder>
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-        holder.mPreview.setText(mNew.getText());
+        //holder.mPreview.setText(mNew.getText());
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N) {
+            holder.mPreview.setText(Html.fromHtml(mNew.getText(), Html.FROM_HTML_MODE_COMPACT));
+        }else {
+            holder.mPreview.setText(Html.fromHtml(mNew.getText()));
+        }
         holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mNew.getComments_count(),mNew.getLikes_count()));
     }
 

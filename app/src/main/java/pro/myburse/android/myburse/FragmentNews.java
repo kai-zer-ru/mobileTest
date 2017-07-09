@@ -300,7 +300,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             int pastVisiblesItems = linearLayoutManager.findFirstVisibleItemPosition();
 
             if (!isLoading) {
-                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
+                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-10) {
                     mFabUp.hide();
                     isLoading=true;
                     Log.wtf("onScrollChanged","Update news last_news_id = "+mNews.get(mNews.size() - 1).getId());
