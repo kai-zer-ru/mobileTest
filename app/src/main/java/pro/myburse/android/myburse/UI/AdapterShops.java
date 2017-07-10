@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import me.zhanghai.android.materialratingbar.MaterialRatingBar;
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.json.Shop;
+import pro.myburse.android.myburse.Json.Shop;
 
 /**
  * Created by alexey on 06.07.17.

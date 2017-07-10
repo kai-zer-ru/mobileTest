@@ -48,7 +48,8 @@ import java.util.ArrayList;
 import pro.myburse.android.myburse.UI.AdapterShops;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.json.Shop;
+import pro.myburse.android.myburse.Json.Shop;
+import pro.myburse.android.myburse.Utils.Utils;
 
 /**
  * Created by alexey on 04.07.17.
@@ -189,6 +190,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
         builder.appendQueryParameter("method","getShops");
+        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
         if (location != null) {
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
@@ -217,7 +219,10 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                isLoading = false;
                 Log.wtf("onErrorResponse",error.toString());
+                swipeRefreshLayout.setRefreshing(false);
+                Utils.showErrorMessage(getContext(),error.toString());
             }
         });
 
@@ -228,7 +233,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
         builder.appendQueryParameter("method","getNews");
-        //TODO добавить App.COUNT_CARDS
+        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
         if (location != null) {
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
@@ -263,6 +268,9 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
             public void onErrorResponse(VolleyError error) {
                 isLoading = false;
                 Log.wtf("onErrorResponse",error.toString());
+                swipeRefreshLayout.setRefreshing(false);
+                Utils.showErrorMessage(getContext(),error.toString());
+
             }
         });
 
@@ -306,7 +314,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
             int visibleItemCount = linearLayoutManager.getChildCount();
             int totalItemCount = linearLayoutManager.getItemCount();
             if (!isLoading) {
-                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-10) {
+                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-(App.COUNT_CARDS/2)) {
                     isLoading=true;
                     mFabUp.hide();
                     Log.wtf("onScrollChanged","Update news last_news_id = "+mShops.get(mShops.size() - 1).getId());

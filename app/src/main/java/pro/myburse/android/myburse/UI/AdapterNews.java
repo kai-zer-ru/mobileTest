@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.json.New;
+import pro.myburse.android.myburse.Json.New;
 
 /**
  * Created by alexey on 06.07.17.

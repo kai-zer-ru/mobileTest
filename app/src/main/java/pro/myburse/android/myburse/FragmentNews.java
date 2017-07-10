@@ -47,7 +47,8 @@ import java.util.ArrayList;
 import pro.myburse.android.myburse.UI.AdapterNews;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.json.New;
+import pro.myburse.android.myburse.Json.New;
+import pro.myburse.android.myburse.Utils.Utils;
 
 /**
  * Created by alexey on 04.07.17.
@@ -180,6 +181,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     private void updateNews(final Location location){
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
+        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
+
         builder.appendQueryParameter("method","getNews");
         if (location != null) {
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
@@ -209,7 +212,10 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                isLoading = false;
                 Log.wtf("onErrorResponse",error.toString());
+                swipeRefreshLayout.setRefreshing(false);
+                Utils.showErrorMessage(getContext(),error.toString());
             }
         });
 
@@ -220,6 +226,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
         builder.appendQueryParameter("method","getNews");
+        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
         if (location != null) {
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
@@ -254,6 +261,9 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             public void onErrorResponse(VolleyError error) {
                 isLoading = false;
                 Log.wtf("onErrorResponse",error.toString());
+                swipeRefreshLayout.setRefreshing(false);
+                Utils.showErrorMessage(getContext(),error.toString());
+
             }
         });
 
@@ -300,7 +310,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             int pastVisiblesItems = linearLayoutManager.findFirstVisibleItemPosition();
 
             if (!isLoading) {
-                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-10) {
+                if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-(App.COUNT_CARDS/2)) {
                     mFabUp.hide();
                     isLoading=true;
                     Log.wtf("onScrollChanged","Update news last_news_id = "+mNews.get(mNews.size() - 1).getId());

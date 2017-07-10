@@ -1,4 +1,4 @@
-package pro.myburse.android.myburse.json;
+package pro.myburse.android.myburse.Json;
 
 /**
  * Created by alexey on 04.07.17.
