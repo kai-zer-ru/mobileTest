@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
     <application
         android:name=".App"
@@ -23,6 +25,21 @@
             </intent-filter>
         </activity>
         <activity android:name=".LoginActivity" />
+        <activity
+            android:name="ru.ok.android.sdk.OkAuthActivity"
+            android:launchMode="singleTask"
+            android:configChanges="orientation">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="ok1252135424"
+                    android:scheme="okauth" />
+            </intent-filter>
+        </activity>
         <!-- Firebase Notifications -->
         <service android:name=".Utils.Firebase.MyFirebaseMessagingService">
             <intent-filter>
@@ -36,6 +53,10 @@
             </intent-filter>
         </service>
         <!-- ./Firebase Notifications -->
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/fb_app_id"
+            />
     </application>
 
 </manifest>

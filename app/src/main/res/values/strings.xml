@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">MyBurse</string>
+    <string name="vk_app_id">6109089</string>
+    <string name="vk_secret_key">sq7lVTnjFUCvmisgR3L0</string>
+    <string name="ok_app_id">1252135424</string>
+    <string name="ok_public_key">CBADBDKLEBABABABA</string>
+    <string name="ok_secret_key">5DA395B69212590876CCDAC0</string>
+    <string name="fb_app_id">1417279791674115</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

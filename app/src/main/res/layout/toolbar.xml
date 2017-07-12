@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.Toolbar
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    app:title="@string/app_name"
-    app:titleTextColor="@android:color/white"
-    app:subtitleTextColor="@android:color/white"
-    app:popupTheme="@style/AppTheme.NoActionBar"
+    android:background="@color/colorPrimary"
     app:layout_collapseMode="pin"
-    >
+    app:popupTheme="@style/AppTheme.NoActionBar"
+    app:subtitleTextColor="@android:color/white"
+    app:theme="@style/AppTheme.NoActionBar.ToolbarColoredBackArrow"
+    app:title="@string/app_name"
+    app:titleTextColor="@android:color/white">
     <!--android.support.v7.widget.AppCompatImageView
         android:id="@+id/toolbar_img"
         app:srcCompat="@drawable/logo_333x81"
@@ -21,4 +21,4 @@
         android:scaleType="fitStart"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"/-->
- </android.support.v7.widget.Toolbar>
+</android.support.v7.widget.Toolbar>

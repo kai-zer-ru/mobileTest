@@ -1,50 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <TextView
-        android:id="@+id/textView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    style="@style/AppTheme.NoActionBar">
+    <include layout="@layout/toolbar"/>
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Войти:"
-      />
-
-    <Button
-        android:id="@+id/btnOK"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Одноклассники" />
-
-    <Button
-        android:id="@+id/btnVK"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="ВКонтакте" />
-
-    <Button
-        android:id="@+id/btnFB"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Facebook" />
-
-    <Button
-        android:id="@+id/btnMyBurse"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="MyBurse" />
-
-    <TextView
-        android:id="@+id/textRegister"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Зарегистрироваться:"
- />
-
-    <Button
-        android:id="@+id/btnRegister"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="регистрация" />
+        android:layout_height="match_parent"
+        android:id="@+id/container"
+        tools:context=".MainActivity">
+    </RelativeLayout>
 </LinearLayout>
