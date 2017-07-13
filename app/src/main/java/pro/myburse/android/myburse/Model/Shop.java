@@ -1,8 +1,6 @@
-package pro.myburse.android.myburse.Json;
+package pro.myburse.android.myburse.Model;
 
-/**
- * Created by alexey on 04.07.17.
- */
+
 
 public class Shop {
 

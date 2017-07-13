@@ -3,23 +3,22 @@ package pro.myburse.android.myburse;
 import android.app.Application;
 import android.content.SharedPreferences;
 
+import com.google.gson.Gson;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
+import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.Utils.Firebase.Config;
-
-/**
- * Created by alexey on 04.07.17.
- */
 
 public class App extends Application {
 
+    public final static int SOCIAL_ID_VK = 1;
+    public final static int SOCIAL_ID_OK = 2;
+    public final static int SOCIAL_ID_FB = 3;
     public final static String URL_BASE = "https://api.myburse.pro/";
     public final static int COUNT_CARDS=20;
     private static Bus Otto;
-    private String Device_Id;
-
-
+    private User mUser;
 
     @Override
     public void onCreate() {
@@ -31,17 +30,17 @@ public class App extends Application {
         return  Otto;
     }
 
-    public String getDevice_Id() {
+    public User getUser() {
         SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
-        Device_Id = pref.getString("regId",null);
-        return Device_Id;
+        String user = pref.getString("user",null);
+        mUser = (user==null)?User.getInstance(): new Gson().fromJson(user, User.class);
+        return mUser;
     }
 
-    public void setDevice_Id(String device_Id) {
-        Device_Id = device_Id;
+    public void setUser(User mUser) {
+        this.mUser = mUser;
         SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putString("regId", device_Id);
-
+        editor.putString("user", new Gson().toJson(mUser)).apply();
     }
 }

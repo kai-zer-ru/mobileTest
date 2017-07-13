@@ -48,12 +48,10 @@ import java.util.ArrayList;
 import pro.myburse.android.myburse.UI.AdapterShops;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Json.Shop;
+import pro.myburse.android.myburse.Model.Shop;
 import pro.myburse.android.myburse.Utils.Utils;
 
-/**
- * Created by alexey on 04.07.17.
- */
+
 
 public class FragmentShops extends Fragment implements ObservableScrollViewCallbacks{
 

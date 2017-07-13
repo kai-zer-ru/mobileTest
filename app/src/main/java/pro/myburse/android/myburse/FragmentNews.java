@@ -47,12 +47,10 @@ import java.util.ArrayList;
 import pro.myburse.android.myburse.UI.AdapterNews;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Json.New;
+import pro.myburse.android.myburse.Model.New;
 import pro.myburse.android.myburse.Utils.Utils;
 
-/**
- * Created by alexey on 04.07.17.
- */
+
 
 public class FragmentNews extends Fragment implements ObservableScrollViewCallbacks{
 
@@ -98,7 +96,6 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRV.setLayoutManager(linearLayoutManager);
         mAdapter = new AdapterNews(mNews);
-        //mAdapter.setMode(Attributes.Mode.Single);
         mRV.setAdapter(mAdapter);
         mRV.setScrollViewCallbacks(this);
 

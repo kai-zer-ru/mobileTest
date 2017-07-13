@@ -1,7 +1,9 @@
 package pro.myburse.android.myburse;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -24,6 +26,7 @@ import android.widget.Toast;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.github.gorbin.asne.core.persons.SocialPerson;
+import com.github.gorbin.asne.vk.VKPerson;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.fontawesome_typeface_library.FontAwesome;
@@ -42,10 +45,16 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.Utils.Firebase.Config;
 import pro.myburse.android.myburse.Utils.Firebase.NotificationUtils;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
+import pro.myburse.android.myburse.Utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private Bus Otto;
 
     private App mApp;
+    private User mUser;
     private Toolbar toolbar;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
 
@@ -71,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         mApp = (App) getApplication();
         Otto = mApp.getOtto();
         Otto.register(this);
+        mUser = mApp.getUser();
 
         DrawerImageLoader.init(new AbstractDrawerImageLoader() {
             @Override
@@ -190,18 +201,17 @@ public class MainActivity extends AppCompatActivity {
 // FIREBASE RECEIVER
 
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
-                    Log.wtf("BroadcastReceiver","onReceive REGISTRATION_COMPLETE " + intent.getStringExtra("token"));
-                    mApp.setDevice_Id(intent.getStringExtra("token"));
+                    Log.wtf("BroadcastReceiver","DEVICE_ID updated " + intent.getStringExtra("token"));
+                    mUser = mApp.getUser();
+                    mUser.setDeviceId(intent.getStringExtra("token"));
+                    mApp.setUser(mUser);
                 } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
                     NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
                     notificationUtils.playNotificationSound();
-                    String message = intent.getStringExtra("message");
                     Log.wtf("BroadcastReceiver","onReceive PUSH_NOTIFICATION " + intent.getStringExtra("message"));
-
                 }
             }
         };
@@ -279,22 +289,31 @@ public class MainActivity extends AppCompatActivity {
 
     @Subscribe
     public void OttoDispatch(OttoMessage msg){
-        switch (msg.getAction()){
-            case "updateDrawer":{
-                final SocialPerson socialPerson = (SocialPerson) msg.getData();
-                final IProfile profile = new ProfileDrawerItem()
-                        .withEmail((socialPerson.email==null)?"":socialPerson.email)
-                        .withIcon(Uri.parse(socialPerson.avatarURL))
-                        .withName(socialPerson.name);
-                mAccountHeader.getProfiles().clear();
-                mAccountHeader.removeProfile(0);
-                mAccountHeader.addProfile(profile,0);
-                mAccountHeader.setActiveProfile(0);
-            }
-            default:{
+        try {
+            switch (msg.getAction()) {
+                case "updateProfile": {
+                   updateProfile();
+                }
+                default: {
 
+                }
             }
+        }catch (Exception e){
+            Utils.showErrorMessage(this, e.getMessage());
         }
     }
 
+    private void updateProfile(){
+        mUser = mApp.getUser();
+        final IProfile profile = new ProfileDrawerItem()
+                .withEmail(mUser.getEmail())
+                .withIcon(Uri.parse((mUser.getUrlImage_50()==null)?mUser.getUrlImage():mUser.getUrlImage_50()))
+                .withName(mUser.getName());
+
+        mAccountHeader.getProfiles().clear();
+        mAccountHeader.removeProfile(0);
+        mAccountHeader.addProfile(profile,0);
+        mAccountHeader.setActiveProfile(0);
+
+    }
 }

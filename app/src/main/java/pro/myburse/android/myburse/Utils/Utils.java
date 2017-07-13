@@ -7,9 +7,7 @@ import android.support.design.widget.Snackbar;
 
 import pro.myburse.android.myburse.R;
 
-/**
- * Created by alexey on 10.07.17.
- */
+
 
 public class Utils {
 

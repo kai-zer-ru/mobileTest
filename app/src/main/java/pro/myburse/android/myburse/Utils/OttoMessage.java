@@ -1,8 +1,6 @@
 package pro.myburse.android.myburse.Utils;
 
-/**
- * Created by alexey on 05.07.17.
- */
+
 
 public class OttoMessage {
     private String action;

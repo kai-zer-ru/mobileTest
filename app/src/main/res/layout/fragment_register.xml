@@ -20,30 +20,17 @@
         android:text="Получить смс" />
 
     <EditText
-        android:id="@+id/editEmail"
+        android:id="@+id/editSMS"
         android:layout_width="match_parent"
-        android:hint="Введите e-mail"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textEmailAddress"
+        android:hint="Введите номер из СМС"
         android:visibility="gone"
         />
-
-    <EditText
-        android:id="@+id/editPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Введите пароль"
-        android:ems="10"
-        android:inputType="textPassword"
-        android:visibility="gone"
-    />
-
     <Button
-        android:id="@+id/btnRegister"
+        android:id="@+id/btnConfirm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Регистрация"
+        android:text="Подтвердить"
         android:visibility="gone"
         />
 

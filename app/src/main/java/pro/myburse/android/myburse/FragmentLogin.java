@@ -1,9 +1,12 @@
 package pro.myburse.android.myburse;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.github.gorbin.asne.core.AccessToken;
 import com.github.gorbin.asne.core.SocialNetwork;
 import com.github.gorbin.asne.core.SocialNetworkManager;
@@ -19,13 +24,25 @@ import com.github.gorbin.asne.core.listener.OnRequestDetailedSocialPersonComplet
 import com.github.gorbin.asne.core.persons.SocialPerson;
 import com.github.gorbin.asne.facebook.FacebookSocialNetwork;
 import com.github.gorbin.asne.odnoklassniki.OkSocialNetwork;
+import com.github.gorbin.asne.vk.VKPerson;
 import com.github.gorbin.asne.vk.VkSocialNetwork;
 import com.squareup.otto.Bus;
-import com.vk.sdk.VKScope;
+import com.vk.sdk.api.VKApi;
+import com.vk.sdk.api.VKApiConst;
+import com.vk.sdk.api.VKParameters;
+import com.vk.sdk.api.VKRequest;
+import com.vk.sdk.api.VKResponse;
+import com.vk.sdk.api.model.VKApiUserFull;
+import com.vk.sdk.api.model.VKList;
 
+import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.Utils.OttoMessage;
+import pro.myburse.android.myburse.Utils.SingleVolley;
+import pro.myburse.android.myburse.Utils.Utils;
 import ru.ok.android.sdk.util.OkScope;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -120,12 +137,11 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                 OkScope.VALUABLE_ACCESS
         };
         String[] vkScope = new String[] {
-                VKScope.FRIENDS,
+/*                VKScope.FRIENDS,
                 VKScope.WALL,
-                VKScope.PHOTOS,
-                VKScope.NOHTTPS,
-                VKScope.STATUS,
-                "email"
+                VKScope.PHOTOS,*/
+                //VKScope.NOHTTPS
+                //VKScope.STATUS
         };
 
         ArrayList<String> fbScope = new ArrayList<String>();
@@ -181,6 +197,7 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
             }
         }
     }
+
     @Override
     public void onSocialNetworkManagerInitialized() {
         //when init SocialNetworks - get and setup login only for initialized SocialNetworks
@@ -239,11 +256,78 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
         socialNetwork = mSocialNetworkManager.getSocialNetwork(networkId);
         socialNetwork.setOnRequestDetailedSocialPersonCompleteListener(this);
         socialNetwork.requestDetailedCurrentPerson();
-        Log.wtf("Debug", "Запрос профиля");
     }
 
     @Override
     public void onRequestDetailedSocialPersonSuccess(int socialNetworkId, SocialPerson socialPerson) {
-        Otto.post(new OttoMessage("updateDrawer", socialPerson));
+        switch (socialNetworkId){
+            case
+                VkSocialNetwork.ID: {
+                    final User mUser = mApp.getUser();
+                    VKRequest yourRequest = VKApi.users().get(VKParameters.from(VKApiConst.FIELDS, "photo_50"));
+                    yourRequest.executeWithListener(new VKRequest.VKRequestListener() {
+                        @Override
+                        public void onComplete(VKResponse response) {
+                            super.onComplete(response);
+                            List usersArray = (VKList) response.parsedModel;
+                            mUser.setUrlImage_50(((VKApiUserFull) usersArray.get(0)).photo_50);
+                            mApp.setUser(mUser);
+                        }
+                    });
+
+
+                    final VKPerson vkPerson = (VKPerson) socialPerson;
+
+                    if (mUser.getExtId() == null || (mUser.getExtId() != null && mUser.getExtId().equals(socialPerson.id))) {
+                        AlertDialog.Builder d = new AlertDialog.Builder(getContext())
+                            .setIcon(android.R.drawable.ic_dialog_info)
+                            .setMessage("Обновить информацию профиля из ВКонтакте?")
+                            .setCancelable(false)
+                            .setPositiveButton("Да", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.dismiss();
+                                    mUser.setExtId(vkPerson.id);
+                                    mUser.setFirstName(vkPerson.firstName);
+                                    mUser.setLastName(vkPerson.lastName);
+                                    mUser.setEmail(vkPerson.email);
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd.M.yyyy");
+                                    try {
+                                        mUser.setBirthday(dateFormat.parse(vkPerson.birthday));
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                        mUser.setBirthday(null);
+                                    }
+                                    mUser.setSocialNetworkName("ВКонтакте");
+                                    mUser.setSocialNetworkId(App.SOCIAL_ID_VK);
+                                    mUser.setPhone(vkPerson.mobilePhone);
+                                    mUser.setUrlImage(vkPerson.avatarURL);
+                                    mApp.setUser(mUser);
+                                    try {
+                                        getActivity().getSupportFragmentManager().beginTransaction()
+                                                .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
+                                                .replace(R.id.container, FragmentProfile.newInstance())
+                                                .addToBackStack(null)
+                                                .commit();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        Utils.showErrorMessage(getContext(), e.getMessage());
+                                    }
+                                    Otto.post(new OttoMessage("updateProfile", null));
+                                }
+                            })
+                            .setNegativeButton("Het", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.cancel();
+                                }
+                            });
+                        d.show();
+                        break;
+                    }
+                }
+
+            }
+        }
     }
-}
+

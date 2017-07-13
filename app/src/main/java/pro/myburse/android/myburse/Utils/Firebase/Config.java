@@ -1,8 +1,6 @@
 package pro.myburse.android.myburse.Utils.Firebase;
 
-/**
- * Created by alexey on 10.07.17.
- */
+
 
 public class Config {
 

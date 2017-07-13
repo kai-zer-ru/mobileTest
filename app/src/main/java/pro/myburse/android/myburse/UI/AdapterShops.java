@@ -21,11 +21,9 @@ import java.util.ArrayList;
 import me.zhanghai.android.materialratingbar.MaterialRatingBar;
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Json.Shop;
+import pro.myburse.android.myburse.Model.Shop;
 
-/**
- * Created by alexey on 06.07.17.
- */
+
 
 public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHolder> {
     ArrayList<Shop> mShops;

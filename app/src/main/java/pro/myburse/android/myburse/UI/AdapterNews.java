@@ -20,11 +20,9 @@ import java.util.ArrayList;
 
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Json.New;
+import pro.myburse.android.myburse.Model.New;
 
-/**
- * Created by alexey on 06.07.17.
- */
+
 
 public class AdapterNews extends RecyclerView.Adapter<AdapterNews.NewViewHolder> {
     ArrayList<New> mNews;
