@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -97,6 +98,7 @@ public class FragmentMyBurseLogin extends Fragment
         ((LoginActivity)getActivity()).getSupportActionBar().setTitle(R.string.app_name);
         // init buttons and set Listener
         mLogin = rootView.findViewById(R.id.login);
+        mLogin.setText(mApp.getLogin());
         mPassword = rootView.findViewById(R.id.password);
         btnOK = rootView.findViewById(R.id.btn_ok);
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -106,7 +108,12 @@ public class FragmentMyBurseLogin extends Fragment
                 user.setDeviceId(mApp.getUser().getDeviceId());
                 Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
                 builder.appendQueryParameter("method","login");
-                builder.appendQueryParameter("login", mLogin.getText().toString());
+                String login =  mLogin.getText().toString();
+                if (Patterns.PHONE.matcher(login).matches()){
+                    login = login.replace(" ","").replace("(","").replace(")","").replace("-","");
+                }
+
+                builder.appendQueryParameter("login",login);
                 builder.appendQueryParameter("password", mPassword.getText().toString());
                 builder.appendQueryParameter("device_id", user.getDeviceId());
                 String registerUrl=builder.build().toString();
@@ -119,7 +126,11 @@ public class FragmentMyBurseLogin extends Fragment
                                 Log.wtf("MyBurseLogin", response.toString());
                                 try {
                                     user.setId(response.getString("user_id"));
+                                    user.setFirstName(response.getString("firstname"));
+                                    user.setMiddleName(response.getString("middlename"));
+                                    user.setLastName(response.getString("lastname"));
                                     user.setEmail(response.getString("email"));
+                                    user.setLogin(response.getString("login"));
                                     user.setPhone(response.getString("phone_number"));
                                     user.setAccess_key(response.getString("access_key"));
                                     user.setBalance_bids(response.getInt("balance_bids"));
@@ -127,8 +138,9 @@ public class FragmentMyBurseLogin extends Fragment
                                     user.setBalance_money(response.getInt("balance_money"));
                                     user.setUrlImage_50(response.getString("avatar"));
                                     mApp.setUser(user);
+                                    mApp.setLogin(response.getString("login"));
                                     LoginActivity.hideProgress();
-                                    getActivity().onBackPressed();
+                                    getActivity().finish();
                                     Otto.post(new OttoMessage("updateProfile", null));
                                 } catch (JSONException e) {
                                     LoginActivity.hideProgress();

@@ -272,6 +272,8 @@ public class MainActivity extends AppCompatActivity {
             switch (msg.getAction()) {
                 case "updateProfile": {
                     updateProfile();
+                    Otto.post(new OttoMessage("getNews",null));
+                    Otto.post(new OttoMessage("getShops",null));
                     Toast.makeText(this, mApp.getUser().getAccess_key(), Toast.LENGTH_SHORT).show();
                 }
                 default: {

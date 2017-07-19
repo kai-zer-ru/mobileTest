@@ -44,6 +44,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.UI.AdapterNews;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
@@ -186,6 +187,12 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
         }
+        User user = mApp.getUser();
+        if (user.isConnected()){
+            builder.appendQueryParameter("user_id",user.getId());
+            builder.appendQueryParameter("device_id",user.getId());
+            builder.appendQueryParameter("access_key",user.getAccess_key());
+        }
         String newsUrl=builder.build().toString();
 
         Request request = new JsonObjectRequest(Request.Method.GET, newsUrl, new Response.Listener<JSONObject>() {
@@ -223,6 +230,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     private void updateNews(final Location location, Long previous_id){
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
+
+
         builder.appendQueryParameter("method","getNews");
         builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
         if (location != null) {
@@ -231,6 +240,12 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         }
         if (null != previous_id){
             builder.appendQueryParameter("last_news_id", String.valueOf(previous_id));
+        }
+        User user = mApp.getUser();
+        if (user.isConnected()){
+            builder.appendQueryParameter("user_id",user.getId());
+            builder.appendQueryParameter("device_id",user.getId());
+            builder.appendQueryParameter("access_key",user.getAccess_key());
         }
         String newsUrl=builder.build().toString();
 
@@ -261,7 +276,6 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                 Log.wtf("onErrorResponse",error.toString());
                 swipeRefreshLayout.setRefreshing(false);
                 Utils.showErrorMessage(getContext(),error.toString());
-
             }
         });
 

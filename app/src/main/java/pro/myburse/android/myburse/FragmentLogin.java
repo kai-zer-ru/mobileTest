@@ -1,37 +1,28 @@
 package pro.myburse.android.myburse;
 
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
-import com.facebook.android.Facebook;
 import com.facebook.model.GraphUser;
 import com.github.gorbin.asne.core.AccessToken;
 import com.github.gorbin.asne.core.SocialNetwork;
-import com.github.gorbin.asne.core.SocialNetworkAsyncTask;
 import com.github.gorbin.asne.core.SocialNetworkManager;
 import com.github.gorbin.asne.core.listener.OnLoginCompleteListener;
 import com.github.gorbin.asne.core.listener.OnRequestDetailedSocialPersonCompleteListener;
 import com.github.gorbin.asne.core.listener.OnRequestSocialPersonCompleteListener;
-import com.github.gorbin.asne.core.listener.base.SocialNetworkListener;
 import com.github.gorbin.asne.core.persons.SocialPerson;
 import com.github.gorbin.asne.facebook.FacebookPerson;
 import com.github.gorbin.asne.facebook.FacebookSocialNetwork;
@@ -39,46 +30,29 @@ import com.github.gorbin.asne.odnoklassniki.OkPerson;
 import com.github.gorbin.asne.odnoklassniki.OkSocialNetwork;
 import com.github.gorbin.asne.vk.VKPerson;
 import com.github.gorbin.asne.vk.VkSocialNetwork;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
-import com.vk.sdk.VKAccessToken;
-import com.vk.sdk.VKScope;
-import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
-import com.vk.sdk.api.httpClient.VKAbstractOperation;
-import com.vk.sdk.api.model.VKApiUser;
 import com.vk.sdk.api.model.VKApiUserFull;
 import com.vk.sdk.api.model.VKList;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import pro.myburse.android.myburse.Model.New;
-import pro.myburse.android.myburse.Model.User;
-import pro.myburse.android.myburse.Utils.OttoMessage;
-import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Utils.Utils;
-import ru.ok.android.sdk.Odnoklassniki;
-import ru.ok.android.sdk.util.OkIOUtil;
-import ru.ok.android.sdk.util.OkNetUtil;
-import ru.ok.android.sdk.util.OkScope;
-
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
+
+import pro.myburse.android.myburse.Model.User;
+import pro.myburse.android.myburse.Utils.OttoMessage;
+import pro.myburse.android.myburse.Utils.SingleVolley;
+import pro.myburse.android.myburse.Utils.Utils;
+import ru.ok.android.sdk.util.OkScope;
 
 
 public class FragmentLogin extends Fragment implements SocialNetworkManager.OnInitializationCompleteListener,
@@ -243,6 +217,11 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                     break;
             }
         }
+        User user = mApp.getUser();
+
+        if(user.getSocialNetworkId() ==0 && user.getId()!=null&&!user.getId().isEmpty()){
+            btnMyBurse.setText("Вход MyBurse");
+        }
     }
 
     @Override
@@ -365,6 +344,7 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                     mUser.setExtId(fbPerson.id);
                     mUser.setDeviceId(mApp.getDeviceId());
                     mUser.setFirstName(fbPerson.firstName);
+                    mUser.setMiddleName(fbPerson.middleName);
                     mUser.setLastName(fbPerson.lastName);
                     if (fbPerson.birthday!=null) {
                         SimpleDateFormat dateFormat = new SimpleDateFormat("dd.M.yyyy");
@@ -457,6 +437,7 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
         builder.appendQueryParameter("device_id", user.getDeviceId());
         builder.appendQueryParameter("social_user_id", user.getExtId());
         builder.appendQueryParameter("firstname", user.getFirstName());
+        builder.appendQueryParameter("middlename", user.getMiddleName());
         builder.appendQueryParameter("lastname", user.getLastName());
         builder.appendQueryParameter("avatar", (user.getUrlImage_50()==null)?user.getUrlImage():user.getUrlImage_50());
         builder.appendQueryParameter("birthday", (user.getBirthday()==null)?"": new SimpleDateFormat("yyyy-MM-dd").format(user.getBirthday()));

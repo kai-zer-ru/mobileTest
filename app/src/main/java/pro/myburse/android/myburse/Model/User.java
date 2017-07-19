@@ -11,10 +11,12 @@ public class User {
     private String extId;
     private String deviceId;
     private String phone;
+    private String login;
     private String email;
     private String urlImage;
     private String urlImage_50;
     private String firstName;
+    private String middleName;
     private String lastName;
     private String password;
     private String city_name;
@@ -111,15 +113,23 @@ public class User {
     }
 
     public String getFirstName() {
-        return firstName;
+        return (firstName!=null)?firstName:"";
     }
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
+    public String getMiddleName() {
+        return (middleName!=null)?middleName:"";
+    }
+
+    public void setMiddleName(String midName) {
+        this.middleName = midName;
+    }
+
     public String getLastName() {
-        return lastName;
+        return (lastName!=null)?lastName:"";
     }
 
     public void setLastName(String lastName) {
@@ -132,10 +142,6 @@ public class User {
 
     public void setBirthday(Date birthday) {
         this.birthday = birthday;
-    }
-
-    public String getName(){
-        return getFirstName()+" "+getLastName();
     }
 
     public String getPassword() {
@@ -200,5 +206,23 @@ public class User {
 
     public void setBalance_money(Integer balance_money) {
         this.balance_money = balance_money;
+    }
+
+    public String getName(){
+        String name = getFirstName()+" "+getMiddleName()+" "+getLastName();
+        name = (name.trim().isEmpty())?getLogin():name;
+        return name;
+    }
+
+    public String getLogin(){
+        return this.login;
+    }
+
+    public void setLogin(String login){
+        this.login = login;
+    }
+
+    public Boolean isConnected(){
+        return getAccess_key()!=null && !getAccess_key().isEmpty();
     }
 }

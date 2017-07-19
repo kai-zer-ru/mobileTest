@@ -45,6 +45,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.UI.AdapterShops;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
@@ -193,6 +194,12 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
         }
+        User user = mApp.getUser();
+        if (user.isConnected()){
+            builder.appendQueryParameter("user_id",user.getId());
+            builder.appendQueryParameter("device_id",user.getId());
+            builder.appendQueryParameter("access_key",user.getAccess_key());
+        }
         String newsUrl=builder.build().toString();
 
         Request request = new JsonObjectRequest(Request.Method.GET, newsUrl, new Response.Listener<JSONObject>() {
@@ -230,14 +237,20 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
     private void updateShops(final Location location, Long previous_id){
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","getNews");
+        builder.appendQueryParameter("method","getShops");
         builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
         if (location != null) {
             builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
         }
         if (null != previous_id){
-            builder.appendQueryParameter("last_news_id", String.valueOf(previous_id));
+            builder.appendQueryParameter("last_shop_id", String.valueOf(previous_id));
+        }
+        User user = mApp.getUser();
+        if (user.isConnected()){
+            builder.appendQueryParameter("user_id",user.getId());
+            builder.appendQueryParameter("device_id",user.getId());
+            builder.appendQueryParameter("access_key",user.getAccess_key());
         }
         String newsUrl=builder.build().toString();
 
@@ -315,7 +328,6 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-(App.COUNT_CARDS/2)) {
                     isLoading=true;
                     mFabUp.hide();
-                    Log.wtf("onScrollChanged","Update news last_news_id = "+mShops.get(mShops.size() - 1).getId());
                     updateShops(mCurrentLocation, mShops.get(mShops.size() - 1).getId());
                 }
             }

@@ -87,17 +87,20 @@ public class FragmentProfile extends Fragment {
                 }
             );
         }else{
-            SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage(), new ImageLoader.ImageListener() {
-                @Override
-                public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                    ivImage.setImageBitmap(response.getBitmap());
-                }
+            String url = (mUser.getUrlImage_50()==null)?mUser.getUrlImage():mUser.getUrlImage_50();
+            if (url!=null) {
+                SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage(), new ImageLoader.ImageListener() {
+                    @Override
+                    public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                        ivImage.setImageBitmap(response.getBitmap());
+                    }
 
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    ivImage.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.md_grey_50));
-                }
-            });
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        ivImage.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.md_grey_50));
+                    }
+                });
+            }
 
         }
         tvId = viewRoot.findViewById(R.id.id);

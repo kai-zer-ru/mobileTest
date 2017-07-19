@@ -16,10 +16,12 @@ public class App extends Application {
     public final static int SOCIAL_ID_OK = 2;
     public final static int SOCIAL_ID_FB = 3;
     public final static String URL_BASE = "https://api.myburse.pro/";
+    //public final static String URL_BASE = "https://api-test.myburse.pro/";
     public final static int COUNT_CARDS=20;
     private static Bus Otto;
     private User mUser;
     private String mDeviceId;
+    private String mLogin;
 
     @Override
     public void onCreate() {
@@ -45,6 +47,18 @@ public class App extends Application {
         editor.putString("user", new Gson().toJson(mUser)).apply();
     }
 
+    public String getLogin() {
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        mLogin = pref.getString("login","");
+        return mLogin;
+    }
+
+    public void setLogin(String login) {
+        mLogin = login;
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("login", login).apply();
+    }
     public String getDeviceId() {
         SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
         mDeviceId = pref.getString("device_id",null);

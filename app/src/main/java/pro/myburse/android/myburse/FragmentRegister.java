@@ -113,7 +113,7 @@ public class FragmentRegister extends Fragment {
                 if (Patterns.PHONE.matcher(mPhone).matches()){
                     Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
                     builder.appendQueryParameter("method","sendConfirmSms");
-                    builder.appendQueryParameter("phone",mPhone);
+                    builder.appendQueryParameter("phone",mPhone.replace(" ","").replace("(","").replace(")","").replace("-",""));
                     builder.appendQueryParameter("device_id",mApp.getDeviceId());
 
                     String smsUrl=builder.build().toString();
@@ -145,6 +145,7 @@ public class FragmentRegister extends Fragment {
 
                     SingleVolley.getInstance(getContext()).addToRequestQueue(request);
                 }else{
+                    btnSMS.setEnabled(true);
                     Utils.showErrorMessage(getContext(),"Неправильный номер телефона");
                 }
             }
@@ -239,16 +240,21 @@ public class FragmentRegister extends Fragment {
                     } else {
                         Utils.showErrorMessage(getContext(), "Код ошибки: "+String.valueOf(error)+"\n"+response.getString("error_text"));
                         btnConfirm.setEnabled(true);
+                        btnSMS.setEnabled(true);
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                     btnConfirm.setEnabled(true);
+                    btnSMS.setEnabled(true);
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Utils.showErrorMessage(getContext(),error.toString());
+                btnConfirm.setEnabled(true);
+                btnSMS.setEnabled(true);
             }
         });
 
