@@ -45,22 +45,13 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.Utils.Firebase.Config;
 import pro.myburse.android.myburse.Utils.Firebase.NotificationUtils;
 import pro.myburse.android.myburse.Utils.OttoMessage;
-import pro.myburse.android.myburse.Utils.SingleVolley;
 import pro.myburse.android.myburse.Utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final int DRAWER_NEWS = 0;
-    private static final int DRAWER_SHOPS = 1;
-    private static final int DRAWER_BLOGS = 2;
 
     private Drawer mDrawer;
     private AccountHeader mAccountHeader;
@@ -76,6 +67,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+// FIREBASE RECEIVER
+
+        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
+                    Log.wtf("BroadcastReceiver","DEVICE_ID updated " + intent.getStringExtra("token"));
+                    mApp.setDeviceId(intent.getStringExtra("token"));
+                } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
+                    NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
+                    notificationUtils.playNotificationSound();
+                    Log.wtf("BroadcastReceiver","onReceive PUSH_NOTIFICATION " + intent.getStringExtra("message"));
+                }
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(Config.REGISTRATION_COMPLETE));
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(Config.PUSH_NOTIFICATION));
+//
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mApp = (App) getApplication();
@@ -104,8 +116,6 @@ public class MainActivity extends AppCompatActivity {
         Drawable icon_blogs = new IconicsDrawable(this)
                 .icon(CommunityMaterial.Icon.cmd_newspaper)
                 .color(Color.GRAY);
-
-// Create the AccountHeader
         mAccountHeader = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withSelectionListEnabledForSingleProfile(false)
@@ -125,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
                     public boolean onClick(View view, IProfile profile) {
                         mDrawer.closeDrawer();
                         startActivity(new Intent(MainActivity.this, LoginActivity.class));
-//                        Toast.makeText(MainActivity.this, "onSelection", Toast.LENGTH_SHORT).show();
                         return false;
                     }
                 })
@@ -133,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onProfileChanged(View view, IProfile profile, boolean currentProfile) {
                         startActivity(new Intent(MainActivity.this, LoginActivity.class));
-//                        Toast.makeText(MainActivity.this, "click!", Toast.LENGTH_SHORT).show();
                         return false;
                     }
 
@@ -152,12 +160,11 @@ public class MainActivity extends AppCompatActivity {
                 .withActionBarDrawerToggleAnimated(true)
                 .withActivity(this)
                 .build();
-// Create drawer items
+
         PrimaryDrawerItem primaryDrawerItem = new PrimaryDrawerItem()
                 .withIdentifier(0)
                 .withIcon(icon_news)
                 .withName("Новости")
-                //.withDescription("Последние события MyBurse")
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
@@ -172,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
                 .withIdentifier(1)
                 .withIcon(icon_shops)
                 .withName("Магазины")
-                //.withDescription("Ближайшие к Вам магазины")
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
@@ -187,7 +193,6 @@ public class MainActivity extends AppCompatActivity {
                 .withIdentifier(2)
                 .withIcon(icon_blogs)
                 .withName("Блоги")
-                //.withDescription("Обновления в блогах")
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
@@ -197,36 +202,11 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         mDrawer.addItem(primaryDrawerItem);
-
-// FIREBASE RECEIVER
-
-        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
-                    Log.wtf("BroadcastReceiver","DEVICE_ID updated " + intent.getStringExtra("token"));
-                    mUser = mApp.getUser();
-                    mUser.setDeviceId(intent.getStringExtra("token"));
-                    mApp.setUser(mUser);
-                } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
-                    NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
-                    notificationUtils.playNotificationSound();
-                    Log.wtf("BroadcastReceiver","onReceive PUSH_NOTIFICATION " + intent.getStringExtra("message"));
-                }
-            }
-        };
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                new IntentFilter(Config.REGISTRATION_COMPLETE));
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                new IntentFilter(Config.PUSH_NOTIFICATION));
-
         NotificationUtils.clearNotifications(getApplicationContext());
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -236,11 +216,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
+    protected void onDestroy() {
+        super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        super.onPause();
-    }
 
+    }
 
     private void getNews(){
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -282,7 +262,6 @@ public class MainActivity extends AppCompatActivity {
         if (mDrawer.isDrawerOpen()) {
             mDrawer.closeDrawer();
         } else {
-            //super.onBackPressed();
             finish();
         }
     }
@@ -292,7 +271,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             switch (msg.getAction()) {
                 case "updateProfile": {
-                   updateProfile();
+                    updateProfile();
+                    Toast.makeText(this, mApp.getUser().getAccess_key(), Toast.LENGTH_SHORT).show();
                 }
                 default: {
 
@@ -307,13 +287,18 @@ public class MainActivity extends AppCompatActivity {
         mUser = mApp.getUser();
         final IProfile profile = new ProfileDrawerItem()
                 .withEmail(mUser.getEmail())
-                .withIcon(Uri.parse((mUser.getUrlImage_50()==null)?mUser.getUrlImage():mUser.getUrlImage_50()))
                 .withName(mUser.getName());
+        if (mUser.getUrlImage_50()!=null) {
+            profile.withIcon(Uri.parse(mUser.getUrlImage_50()));
+        } else if (mUser.getUrlImage()!=null){
+            profile.withIcon(Uri.parse(mUser.getUrlImage()));
+        }
 
         mAccountHeader.getProfiles().clear();
         mAccountHeader.removeProfile(0);
         mAccountHeader.addProfile(profile,0);
         mAccountHeader.setActiveProfile(0);
+        mDrawer.openDrawer();
 
     }
 }

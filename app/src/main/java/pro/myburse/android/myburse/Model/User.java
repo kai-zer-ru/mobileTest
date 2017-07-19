@@ -5,7 +5,7 @@ import java.util.Date;
 public class User {
 
     private static User userInstance = null;
-    private long id;
+    private String id;
     private int socialNetworkId;
     private String socialNetworkName;
     private String extId;
@@ -16,8 +16,15 @@ public class User {
     private String urlImage_50;
     private String firstName;
     private String lastName;
-
+    private String password;
+    private String city_name;
+    private String region_name;
+    private String country_name;
     private Date birthday;
+    private Integer balance_bids;
+    private Integer balance_bonus;
+    private Integer balance_money;
+    private String access_key;
 
 
     public static User getInstance(){
@@ -27,15 +34,15 @@ public class User {
         return userInstance;
     }
 
-    private User(){
+    public User(){
 
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -120,7 +127,7 @@ public class User {
     }
 
     public Date getBirthday() {
-        return birthday;
+        return (birthday==null?new Date():birthday);
     }
 
     public void setBirthday(Date birthday) {
@@ -129,5 +136,69 @@ public class User {
 
     public String getName(){
         return getFirstName()+" "+getLastName();
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getCity_name() {
+        return city_name;
+    }
+
+    public void setCity_name(String city_name) {
+        this.city_name = city_name;
+    }
+
+    public String getRegion_name() {
+        return region_name;
+    }
+
+    public void setRegion_name(String region_name) {
+        this.region_name = region_name;
+    }
+
+    public String getCountry_name() {
+        return country_name;
+    }
+
+    public void setCountry_name(String country_name) {
+        this.country_name = country_name;
+    }
+
+    public String getAccess_key() {
+        return access_key;
+    }
+
+    public void setAccess_key(String access_key) {
+        this.access_key = access_key;
+    }
+
+    public Integer getBalance_bids() {
+        return balance_bids;
+    }
+
+    public void setBalance_bids(Integer balance_bids) {
+        this.balance_bids = balance_bids;
+    }
+
+    public Integer getBalance_bonus() {
+        return balance_bonus;
+    }
+
+    public void setBalance_bonus(Integer balance_bonus) {
+        this.balance_bonus = balance_bonus;
+    }
+
+    public Integer getBalance_money() {
+        return balance_money;
+    }
+
+    public void setBalance_money(Integer balance_money) {
+        this.balance_money = balance_money;
     }
 }

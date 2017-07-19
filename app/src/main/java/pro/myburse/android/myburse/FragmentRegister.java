@@ -1,18 +1,25 @@
 package pro.myburse.android.myburse;
 
+import android.*;
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -32,33 +39,26 @@ import org.json.JSONObject;
 
 import java.util.Locale;
 
+import pro.myburse.android.myburse.Model.User;
+import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
 import pro.myburse.android.myburse.Utils.Utils;
 
 public class FragmentRegister extends Fragment {
 
-    interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
-    }
 
-
+    private static final int REQUEST_SMS = 0;
     private EditText editPhoneNumber;
     private EditText editSMS;
     private Button btnConfirm;
     private Button btnSMS;
-    private SMSReceiver smsReceiver;
+    private SMSReceiver smsReceiver=null;
     private App mApp;
     private Bus Otto;
+    private String mPhone;
 
-
-    private OnFragmentInteractionListener mListener;
 
     public FragmentRegister() {
-    }
-
-    public static FragmentRegister newInstance(String param1, String param2) {
-        FragmentRegister fragment = new FragmentRegister();
-        return fragment;
     }
 
     public static FragmentRegister newInstance() {
@@ -69,10 +69,6 @@ public class FragmentRegister extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-/*        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }*/
         setRetainInstance(true);
         mApp = (App) getActivity().getApplication();
         Otto = mApp.getOtto();
@@ -83,18 +79,42 @@ public class FragmentRegister extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View viewRoot = inflater.inflate(R.layout.fragment_register, container, false);
+
+
+        btnSMS = viewRoot.findViewById(R.id.btnSMS);
         editPhoneNumber = viewRoot.findViewById(R.id.editPhone);
         editSMS = viewRoot.findViewById(R.id.editSMS);
-        btnSMS = viewRoot.findViewById(R.id.btnSMS);
+        btnConfirm = viewRoot.findViewById(R.id.btnConfirm);
+
+        editSMS.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                btnConfirm.setVisibility(View.VISIBLE);
+                return false;
+            }
+        });
+
         btnSMS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String phoneNumber =  editPhoneNumber.getText().toString();
-                if (android.util.Patterns.PHONE.matcher(phoneNumber).matches()){
+                btnSMS.setEnabled(false);
+                mPhone = editPhoneNumber.getText().toString();
+                if (mPhone.startsWith("8")){
+                    mPhone = "+7"+mPhone.substring(1);
+                    editPhoneNumber.setText(mPhone);
+                }
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                    mPhone = PhoneNumberUtils.formatNumber(mPhone);
+                }else{
+                    mPhone = PhoneNumberUtils.formatNumber(mPhone, Locale.getDefault().getCountry());
+                }
+                editPhoneNumber.setText(mPhone);
+
+                if (Patterns.PHONE.matcher(mPhone).matches()){
                     Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
                     builder.appendQueryParameter("method","sendConfirmSms");
-                    builder.appendQueryParameter("phone",phoneNumber);
-                    builder.appendQueryParameter("device_id",mApp.getUser().getDeviceId());
+                    builder.appendQueryParameter("phone",mPhone);
+                    builder.appendQueryParameter("device_id",mApp.getDeviceId());
 
                     String smsUrl=builder.build().toString();
 
@@ -107,9 +127,11 @@ public class FragmentRegister extends Fragment {
                                 if (error==0){
                                     Toast.makeText(getContext(), "Запрос СМС подтверждения отправлен", Toast.LENGTH_SHORT).show();
                                 } else {
-                                    Utils.showErrorMessage(getContext(), String.valueOf(error));
+                                    Utils.showErrorMessage(getContext(), response.getString("error_text"));
+                                    btnSMS.setEnabled(true);
                                 }
                             } catch (JSONException e) {
+                                btnSMS.setEnabled(true);
                                 e.printStackTrace();
                             }
                         }
@@ -117,10 +139,14 @@ public class FragmentRegister extends Fragment {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Utils.showErrorMessage(getContext(),error.toString());
+                            btnSMS.setEnabled(true);
                         }
                     });
 
-                    SingleVolley.getInstance(getContext()).addToRequestQueue(request);                }
+                    SingleVolley.getInstance(getContext()).addToRequestQueue(request);
+                }else{
+                    Utils.showErrorMessage(getContext(),"Неправильный номер телефона");
+                }
             }
         });
 
@@ -143,50 +169,41 @@ public class FragmentRegister extends Fragment {
                 return false;
             }
         });
-
         btnConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                User user = mApp.getUser();
+                user.setPhone(editPhoneNumber.getText().toString());
+                mApp.setUser(user);
+                sendPhoneConfirmation(editSMS.getText().toString().trim());
             }
         });
         return viewRoot;
     }
 
 
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(SMSReceiver.ACTION);
-        smsReceiver = new SMSReceiver();
-        getActivity().registerReceiver(smsReceiver,filter);
+        requestSmsPermission();
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
-        getActivity().unregisterReceiver(smsReceiver);
+        if (smsReceiver!=null) {
+            getActivity().unregisterReceiver(smsReceiver);
+        }
     }
 
-    private void sendPhoneConfirmation(final String text){
+    private void sendPhoneConfirmation(String text){
+        final String sms = text.replaceAll("\\D+","");
+        editSMS.setText(sms);
+        btnConfirm.setEnabled(false);
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
         builder.appendQueryParameter("method","confirmPhone");
-        builder.appendQueryParameter("phone_hash",text.replaceAll("\\D+",""));
-        builder.appendQueryParameter("device_id",mApp.getUser().getDeviceId());
+        builder.appendQueryParameter("phone_hash",sms);
+        builder.appendQueryParameter("device_id",mApp.getDeviceId());
 
         String phoneUrl=builder.build().toString();
 
@@ -194,15 +211,38 @@ public class FragmentRegister extends Fragment {
             @Override
             public void onResponse(JSONObject response) {
                 Log.wtf("onResponse",response.toString());
+                final User mUser = new User();
+                mUser.setDeviceId(mApp.getDeviceId());
+                mUser.setPhone(mPhone);
+                try {
+                    mUser.setId(response.getString("user_id"));
+                } catch (JSONException e) {
+                    Utils.showErrorMessage(getContext(),e.toString());
+                    e.printStackTrace();
+                }
+                mUser.setPassword(sms);
+                mApp.setUser(mUser);
                 try {
                     int error = response.getInt("error");
                     if (error==0){
-                        Toast.makeText(getContext(), "Ушло подтверждение СМС " + text.replaceAll("\\D+",""), Toast.LENGTH_SHORT).show();
+                        try {
+                            getActivity().getSupportFragmentManager().beginTransaction()
+                                    .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
+                                    .replace(R.id.container, FragmentProfile.newInstance())
+                                    .addToBackStack(null)
+                                    .commit();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Utils.showErrorMessage(getContext(), e.getMessage());
+                        }
+                        Otto.post(new OttoMessage("updateProfile", null));
                     } else {
-                        Utils.showErrorMessage(getContext(), String.valueOf(error));
+                        Utils.showErrorMessage(getContext(), "Код ошибки: "+String.valueOf(error)+"\n"+response.getString("error_text"));
+                        btnConfirm.setEnabled(true);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    btnConfirm.setEnabled(true);
                 }
             }
         }, new Response.ErrorListener() {
@@ -224,20 +264,24 @@ public class FragmentRegister extends Fragment {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ACTION)){
-                Bundle bundle = intent.getExtras();
-                if (bundle != null) {
-                    Object[] pdus = (Object[])bundle.get("pdus");
-                    assert pdus != null;
-                    final SmsMessage[] messages = new SmsMessage[pdus.length];
-                    for (int i = 0; i < pdus.length; i++) {
-                        Object o = pdus[i];
-                        messages[i] = getIncomingMessage(o, bundle);
-                    }
-                    if (messages.length > -1) {
-                        sendPhoneConfirmation(messages[0].getMessageBody());
+            try {
+                if (intent.getAction().equals(ACTION)) {
+                    Bundle bundle = intent.getExtras();
+                    if (bundle != null) {
+                        Object[] pdus = (Object[]) bundle.get("pdus");
+                        assert pdus != null;
+                        final SmsMessage[] messages = new SmsMessage[pdus.length];
+                        for (int i = 0; i < pdus.length; i++) {
+                            Object o = pdus[i];
+                            messages[i] = getIncomingMessage(o, bundle);
+                        }
+                        if (messages.length > -1) {
+                            sendPhoneConfirmation(messages[0].getMessageBody());
+                        }
                     }
                 }
+            }catch (Exception e){
+                Utils.showErrorMessage(getContext(),e.getMessage());
             }
         }
 
@@ -252,5 +296,41 @@ public class FragmentRegister extends Fragment {
             return currentSMS;
         }
     }
+
+    private void requestSmsPermission() {
+        String permission = Manifest.permission.RECEIVE_SMS;
+        int grant = ContextCompat.checkSelfPermission(getActivity(), permission);
+        if ( grant != PackageManager.PERMISSION_GRANTED) {
+            String[] permission_list = new String[]{permission};
+            requestPermissions(permission_list, REQUEST_SMS);
+        }else{
+            IntentFilter filter = new IntentFilter();
+            filter.setPriority(2147483647);
+            filter.addAction(SMSReceiver.ACTION);
+            smsReceiver = new SMSReceiver();
+            getActivity().registerReceiver(smsReceiver,filter);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+
+        if (requestCode == REQUEST_SMS) {
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(SMSReceiver.ACTION);
+                filter.setPriority(2147483647);
+                smsReceiver = new SMSReceiver();
+                getActivity().registerReceiver(smsReceiver,filter);
+
+            } else {
+                editSMS.setVisibility(View.VISIBLE);
+                btnConfirm.setVisibility(View.VISIBLE);
+
+            }
+        }
+    }
+
 
 }

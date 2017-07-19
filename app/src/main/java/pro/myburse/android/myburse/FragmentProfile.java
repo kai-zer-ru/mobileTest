@@ -32,7 +32,7 @@ import pro.myburse.android.myburse.Utils.SingleVolley;
 public class FragmentProfile extends Fragment {
 
     private TextInputEditText tvId, tvFirstName, tvLastName, tvSocialNetworkId, tvSocialNetworkName,
-     tvExtId,tvDeviceId,tvPhone, tvEmail, tvBirthday;
+     tvExtId,tvDeviceId,tvPhone, tvEmail, tvBirthday, tvPassword;
     private ImageView ivImage;
     private Bus Otto;
     private App mApp;
@@ -59,34 +59,47 @@ public class FragmentProfile extends Fragment {
                              Bundle savedInstanceState) {
         View viewRoot = inflater.inflate(R.layout.fragment_profile, container, false);
         ivImage = viewRoot.findViewById(R.id.ivImage);
+        if (mUser.getSocialNetworkId()==App.SOCIAL_ID_VK){
+            VKRequest yourRequest = VKApi.users().get(VKParameters.from(VKApiConst.FIELDS,"photo_50"));
+            yourRequest.executeWithListener(new VKRequest.VKRequestListener() {
+                    @Override
+                    public void onComplete(VKResponse response) {
+                        super.onComplete(response);
 
-        VKRequest yourRequest = VKApi.users().get(VKParameters.from(VKApiConst.FIELDS,"photo_50"));
+                        List usersArray = (VKList) response.parsedModel;
 
-        yourRequest.executeWithListener(new VKRequest.VKRequestListener() {
-                @Override
-                public void onComplete(VKResponse response) {
-                    super.onComplete(response);
+                        VKApiUserFull userFull = (VKApiUserFull) usersArray.get(0);
+                        User mUser = mApp.getUser();
+                        mUser.setUrlImage_50(((VKApiUserFull) usersArray.get(0)).photo_50);
+                        mApp.setUser(mUser);
+                        SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage_50(), new ImageLoader.ImageListener() {
+                            @Override
+                            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                                ivImage.setImageBitmap(response.getBitmap());
+                            }
 
-                    List usersArray = (VKList) response.parsedModel;
-
-                    VKApiUserFull userFull = (VKApiUserFull) usersArray.get(0);
-                    User mUser = mApp.getUser();
-                    mUser.setUrlImage_50(((VKApiUserFull) usersArray.get(0)).photo_50);
-                    mApp.setUser(mUser);
-                    SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage_50(), new ImageLoader.ImageListener() {
-                        @Override
-                        public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                            ivImage.setImageBitmap(response.getBitmap());
-                        }
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            ivImage.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.md_grey_50));
-                        }
-                    });
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                ivImage.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.md_grey_50));
+                            }
+                        });
+                    }
                 }
-            }
-        );
+            );
+        }else{
+            SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage(), new ImageLoader.ImageListener() {
+                @Override
+                public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                    ivImage.setImageBitmap(response.getBitmap());
+                }
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    ivImage.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.md_grey_50));
+                }
+            });
+
+        }
         tvId = viewRoot.findViewById(R.id.id);
         tvId.setText(String.valueOf(mUser.getId()));
 
@@ -106,7 +119,7 @@ public class FragmentProfile extends Fragment {
         tvExtId.setText(mUser.getExtId());
 
         tvDeviceId = viewRoot.findViewById(R.id.deviceId);
-        tvDeviceId.setText(mUser.getDeviceId());
+        tvDeviceId.setText(mApp.getDeviceId());
 
         tvPhone = viewRoot.findViewById(R.id.phone);
         tvPhone.setText(mUser.getPhone());
@@ -116,6 +129,9 @@ public class FragmentProfile extends Fragment {
 
         tvBirthday = viewRoot.findViewById(R.id.birthday);
         tvBirthday.setText(mUser.getBirthday().toString());
+
+        tvPassword = viewRoot.findViewById(R.id.password);
+        tvPassword.setText(mUser.getPassword());
 
         return viewRoot;
     }

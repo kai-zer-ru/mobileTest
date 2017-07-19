@@ -19,6 +19,7 @@ public class App extends Application {
     public final static int COUNT_CARDS=20;
     private static Bus Otto;
     private User mUser;
+    private String mDeviceId;
 
     @Override
     public void onCreate() {
@@ -42,5 +43,18 @@ public class App extends Application {
         SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString("user", new Gson().toJson(mUser)).apply();
+    }
+
+    public String getDeviceId() {
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        mDeviceId = pref.getString("device_id",null);
+        return mDeviceId;
+    }
+
+    public void setDeviceId(String mDeviceId) {
+        this.mDeviceId = mDeviceId;
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("device_id", mDeviceId).apply();
     }
 }

@@ -127,7 +127,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         if (savedInstanceState==null) {
             if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
                         PERMISSION_REQUEST_ACCESS_LOCATION);
             } else {
                 swipeRefreshLayout.setRefreshing(true);
@@ -145,6 +145,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             case PERMISSION_REQUEST_ACCESS_LOCATION: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    swipeRefreshLayout.setRefreshing(true);
                     getCurrentLocation();
                 } else {
                     updateNews(null);

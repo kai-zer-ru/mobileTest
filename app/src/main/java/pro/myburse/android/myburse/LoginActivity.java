@@ -17,7 +17,7 @@ import android.view.MenuItem;
 
 
 
-    public class LoginActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener, FragmentRegister.OnFragmentInteractionListener {
+    public class LoginActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
         public static final String SOCIAL_NETWORK_TAG = "SocialIntegrationMain.SOCIAL_NETWORK_TAG";
         private static ProgressDialog pd;
         private Toolbar toolbar;
@@ -91,60 +91,9 @@ import android.view.MenuItem;
         }
 
     @Override
-    public void onFragmentInteraction(Uri uri) {
-        Log.wtf("LoginActivity onFragmentInteraction",uri.toString());
-    }
-
-    @Override
     public void onBackPressed() {
 
         super.onBackPressed();
     }
 }
 
-    /*
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
-        btnFB = (Button) findViewById(R.id.btnFB);
-        btnFB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(LoginActivity.this, "Facebook", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btnVK = (Button) findViewById(R.id.btnVK);
-        btnVK.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(LoginActivity.this, "VK", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btnOK = (Button) findViewById(R.id.btnOK);
-        btnOK.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(LoginActivity.this, "OK", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btnEmail = (Button) findViewById(R.id.btnMyBurse);
-        btnEmail.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(LoginActivity.this, "MyBurse", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        btnRegister = (Button) findViewById(R.id.btnRegister);
-        btnRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(LoginActivity.this, "MyBurse регистрация", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-}*/
