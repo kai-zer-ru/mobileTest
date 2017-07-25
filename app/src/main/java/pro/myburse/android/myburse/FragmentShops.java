@@ -90,7 +90,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View viewRoot = inflater.inflate(R.layout.fragment_news,container,false);
+        View viewRoot = inflater.inflate(R.layout.fragment_list,container,false);
 
         mRV = viewRoot.findViewById(R.id.rv);
         linearLayoutManager= new LinearLayoutManager(getContext());
@@ -197,7 +197,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         User user = mApp.getUser();
         if (user.isConnected()){
             builder.appendQueryParameter("user_id",user.getId());
-            builder.appendQueryParameter("device_id",user.getId());
+            builder.appendQueryParameter("device_id",user.getDeviceId());
             builder.appendQueryParameter("access_key",user.getAccess_key());
         }
         String newsUrl=builder.build().toString();
@@ -244,12 +244,12 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
             builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
         }
         if (null != previous_id){
-            builder.appendQueryParameter("last_shop_id", String.valueOf(previous_id));
+            builder.appendQueryParameter("offset", String.valueOf(previous_id));
         }
         User user = mApp.getUser();
         if (user.isConnected()){
             builder.appendQueryParameter("user_id",user.getId());
-            builder.appendQueryParameter("device_id",user.getId());
+            builder.appendQueryParameter("device_id",user.getDeviceId());
             builder.appendQueryParameter("access_key",user.getAccess_key());
         }
         String newsUrl=builder.build().toString();

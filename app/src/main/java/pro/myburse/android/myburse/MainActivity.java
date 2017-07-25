@@ -1,20 +1,15 @@
 package pro.myburse.android.myburse;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -23,13 +18,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.ImageLoader;
-import com.github.gorbin.asne.core.persons.SocialPerson;
-import com.github.gorbin.asne.vk.VKPerson;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
-import com.mikepenz.fontawesome_typeface_library.FontAwesome;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -75,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
                     Log.wtf("BroadcastReceiver","DEVICE_ID updated " + intent.getStringExtra("token"));
                     mApp.setDeviceId(intent.getStringExtra("token"));
+
                 } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
                     NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
                     notificationUtils.playNotificationSound();
@@ -196,12 +186,17 @@ public class MainActivity extends AppCompatActivity {
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
                     public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
-                        Toast.makeText(MainActivity.this, "Fragment BLOGS", Toast.LENGTH_SHORT).show();
+                        getBlogs();
                         return false;
                     }
                 });
 
         mDrawer.addItem(primaryDrawerItem);
+
+        mUser = mApp.getUser();
+        if (mUser!=null&&mUser.isConnected()&&mUser.getDeviceId().equals(mApp.getDeviceId())){
+            updateProfile();
+        }
     }
 
     @Override
@@ -257,6 +252,24 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void getBlogs(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentByTag(FragmentBlogs.class.getSimpleName());
+
+        if (fragment==null) {
+            fragmentManager.popBackStack();
+            fragment = FragmentBlogs.getInstance();
+
+            fragmentManager
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
+                    .addToBackStack(fragment.getClass().getSimpleName())
+                    .commit();
+        } else {
+            Otto.post(new OttoMessage("getBlogs",null));
+        }
+
+    }
     @Override
     public void onBackPressed() {
         if (mDrawer.isDrawerOpen()) {

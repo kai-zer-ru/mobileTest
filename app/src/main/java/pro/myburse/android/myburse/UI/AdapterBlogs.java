@@ -19,35 +19,33 @@ import com.mikepenz.iconics.view.IconicsTextView;
 import java.util.ArrayList;
 
 import me.zhanghai.android.materialratingbar.MaterialRatingBar;
+import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Model.Shop;
 
 
-
-public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHolder> {
-    ArrayList<Shop> mShops;
+public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHolder> {
+    ArrayList<Blog> mBlogs;
     Context mContext;
 
-    public AdapterShops(ArrayList<Shop> shops){
+    public AdapterBlogs(ArrayList<Blog> blogs){
         super();
-        this.mShops=shops;
+        this.mBlogs=blogs;
     }
 
     @Override
-    public ShopViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public BlogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
         View view = LayoutInflater.from(mContext).inflate(R.layout.card_shop, parent, false);
-        return new ShopViewHolder(view);
+        return new BlogViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final ShopViewHolder holder, int position) {
-        final Shop mShop = mShops.get(position);
-
+    public void onBindViewHolder(final BlogViewHolder holder, int position) {
+        final Blog mBlog = mBlogs.get(position);
         ImageLoader imageLoader = SingleVolley.getInstance(mContext).getImageLoader();
 
-        imageLoader.get(mShop.getOwner_avatar(), new ImageLoader.ImageListener() {
+        imageLoader.get(mBlog.getOwnerAvatar(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mOwnerImage.setImageBitmap(response.getBitmap());
@@ -58,11 +56,11 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-//        holder.mOwnerImage.setImageUrl(mShop.getOwnerAvatar(), SingleVolley.getInstance(mContext).getImageLoader());
-        holder.mOwnerName.setText(mShop.getOwner_name());
-        holder.mDateAdd.setText(mShop.getDate_add());
-        holder.mTitle.setText(mShop.getTitle());
-        imageLoader.get(mShop.getImage(), new ImageLoader.ImageListener() {
+        holder.mOwnerName.setText(mBlog.getOwnerName());
+        holder.mDateAdd.setText(mBlog.getDate_add());
+        holder.mTitle.setText(mBlog.getTitle());
+
+        imageLoader.get(mBlog.getImage(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mImage.setImageBitmap(response.getBitmap());
@@ -73,24 +71,24 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
+        //holder.mPreview.setText(mNew.getText());
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N) {
-            holder.mPreview.setText(Html.fromHtml(mShop.getText().toString(), Html.FROM_HTML_MODE_COMPACT));
-        }else{
-            holder.mPreview.setText(Html.fromHtml(mShop.getText().toString()));
+            holder.mPreview.setText(Html.fromHtml(mBlog.getText(), Html.FROM_HTML_MODE_COMPACT));
+        }else {
+            holder.mPreview.setText(Html.fromHtml(mBlog.getText()));
         }
         holder.mRating.setNumStars(5);
-        holder.mRating.setRating(mShop.getRating());
-        //holder.mRating
-        holder.mCounters.setText(String.format("{faw-comment} %d ",mShop.getReviews_count()));
+        holder.mRating.setRating(mBlog.getRating());
+        holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mBlog.getCommentsCount(),mBlog.getLikesCount()));
     }
 
 
     @Override
     public int getItemCount() {
-        return mShops.size();
+        return mBlogs.size();
     }
 
-    static class ShopViewHolder extends RecyclerView.ViewHolder{
+    static class BlogViewHolder extends RecyclerView.ViewHolder{
 
         CardView cv;
         ImageView mOwnerImage;
@@ -103,7 +101,7 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
         IconicsTextView mCounters;
 
 
-        private ShopViewHolder(View itemView) {
+        private BlogViewHolder(View itemView) {
             super(itemView);
             cv =  itemView.findViewById(R.id.cv);
             mOwnerImage = cv.findViewById(R.id.shop_owner_img);
@@ -114,6 +112,7 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
             mPreview = cv.findViewById(R.id.shop_preview);
             mRating = cv.findViewById(R.id.shop_rating);
             mCounters = cv.findViewById(R.id.shop_counters);
+
         }
 
     }

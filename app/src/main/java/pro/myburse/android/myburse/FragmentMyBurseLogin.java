@@ -12,52 +12,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.facebook.Request;
-import com.facebook.Response;
-import com.facebook.Session;
-import com.facebook.model.GraphUser;
-import com.github.gorbin.asne.core.AccessToken;
-import com.github.gorbin.asne.core.SocialNetwork;
-import com.github.gorbin.asne.core.SocialNetworkManager;
-import com.github.gorbin.asne.core.listener.OnLoginCompleteListener;
-import com.github.gorbin.asne.core.listener.OnRequestDetailedSocialPersonCompleteListener;
-import com.github.gorbin.asne.core.listener.OnRequestSocialPersonCompleteListener;
-import com.github.gorbin.asne.core.persons.SocialPerson;
-import com.github.gorbin.asne.facebook.FacebookPerson;
-import com.github.gorbin.asne.facebook.FacebookSocialNetwork;
-import com.github.gorbin.asne.odnoklassniki.OkPerson;
-import com.github.gorbin.asne.odnoklassniki.OkSocialNetwork;
-import com.github.gorbin.asne.vk.VKPerson;
-import com.github.gorbin.asne.vk.VkSocialNetwork;
 import com.squareup.otto.Bus;
-import com.vk.sdk.api.VKApi;
-import com.vk.sdk.api.VKApiConst;
-import com.vk.sdk.api.VKParameters;
-import com.vk.sdk.api.VKRequest;
-import com.vk.sdk.api.VKResponse;
-import com.vk.sdk.api.model.VKApiUserFull;
-import com.vk.sdk.api.model.VKList;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
 import pro.myburse.android.myburse.Utils.Utils;
-import ru.ok.android.sdk.util.OkScope;
-
-import static pro.myburse.android.myburse.R.id.btnMyBurse;
 
 
 public class FragmentMyBurseLogin extends Fragment
@@ -144,6 +110,7 @@ public class FragmentMyBurseLogin extends Fragment
                                     Otto.post(new OttoMessage("updateProfile", null));
                                 } catch (JSONException e) {
                                     LoginActivity.hideProgress();
+                                    Utils.showErrorMessage(getContext(), e.toString());
                                     e.printStackTrace();
                                 }
                             } else {

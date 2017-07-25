@@ -320,7 +320,6 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                 case OkSocialNetwork.ID:{
                     final OkPerson okPerson= (OkPerson) socialPerson;
                     mUser.setExtId(okPerson.id);
-                    mUser.setDeviceId(mApp.getDeviceId());
                     mUser.setFirstName(okPerson.firstName);
                     mUser.setLastName(okPerson.lastName);
                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
@@ -342,7 +341,6 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                 case FacebookSocialNetwork.ID:{
                     final FacebookPerson fbPerson= (FacebookPerson) socialPerson;
                     mUser.setExtId(fbPerson.id);
-                    mUser.setDeviceId(mApp.getDeviceId());
                     mUser.setFirstName(fbPerson.firstName);
                     mUser.setMiddleName(fbPerson.middleName);
                     mUser.setLastName(fbPerson.lastName);
@@ -369,14 +367,9 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
 
     @Override
     public void onRequestSocialPersonSuccess(int socialNetworkId, SocialPerson socialPerson) {
-        Log.wtf("DEBUG", socialPerson.toString());
-        final User mUser = new User();
-        mUser.setDeviceId(mApp.getDeviceId());
-        mApp.setUser(mUser);
         if (socialNetworkId==FacebookSocialNetwork.ID){
             fbRequestDetailedSocialPerson(socialPerson.id);
         }
-
     }
 
     @Override

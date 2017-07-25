@@ -1,17 +1,12 @@
 package pro.myburse.android.myburse;
 
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.location.Location;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
@@ -28,10 +23,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -44,37 +35,32 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.Model.User;
-import pro.myburse.android.myburse.UI.AdapterNews;
+import pro.myburse.android.myburse.UI.AdapterBlogs;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Model.New;
 import pro.myburse.android.myburse.Utils.Utils;
 
 
-
-public class FragmentNews extends Fragment implements ObservableScrollViewCallbacks{
+public class FragmentBlogs extends Fragment implements ObservableScrollViewCallbacks{
 
     private App mApp;
     private Bus Otto;
-    private ArrayList<New> mNews;
+    private ArrayList<Blog> mBlogs;
     private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton mFabUp;
     private ObservableRecyclerView mRV;
-    private AdapterNews mAdapter;
-    private FusedLocationProviderClient mFusedLocationClient;
-    private final int PERMISSION_REQUEST_ACCESS_LOCATION = 0;
+    private AdapterBlogs mAdapter;
     private  LinearLayoutManager linearLayoutManager;
-    private Location mCurrentLocation;
     private boolean isLoading = false;
 
-
-    public FragmentNews(){
-       mNews = new ArrayList<>();
+    public FragmentBlogs(){
+       mBlogs = new ArrayList<>();
     }
 
-    public static FragmentNews getInstance(){
-        FragmentNews fragment = new FragmentNews();
+    public static FragmentBlogs getInstance(){
+        FragmentBlogs fragment = new FragmentBlogs();
         return fragment;
     }
 
@@ -91,12 +77,13 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View viewRoot = inflater.inflate(R.layout.fragment_list,container,false);
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
+
         mRV = viewRoot.findViewById(R.id.rv);
         linearLayoutManager= new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRV.setLayoutManager(linearLayoutManager);
-        mAdapter = new AdapterNews(mNews);
+        mAdapter = new AdapterBlogs(mBlogs);
+        //mAdapter.setMode(Attributes.Mode.Single);
         mRV.setAdapter(mAdapter);
         mRV.setScrollViewCallbacks(this);
 
@@ -104,9 +91,9 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mNews.clear();
+                mBlogs.clear();
                 mAdapter.notifyDataSetChanged();
-                getCurrentLocation();
+                updateBlogs();
             }
         });
 
@@ -122,48 +109,32 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         return viewRoot;
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState==null) {
-            if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        PERMISSION_REQUEST_ACCESS_LOCATION);
-            } else {
-                swipeRefreshLayout.setRefreshing(true);
-                mNews.clear();
-                mAdapter.notifyDataSetChanged();
-                getCurrentLocation();
-            }
-        }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_ACCESS_LOCATION: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    swipeRefreshLayout.setRefreshing(true);
-                    getCurrentLocation();
-                } else {
-                    updateNews(null);
-                }
-                return;
-            }
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState == null){
+            swipeRefreshLayout.setRefreshing(true);
+            mBlogs.clear();
+            mAdapter.notifyDataSetChanged();
+            updateBlogs();
         }
     }
 
     @Subscribe
     public void OttoDispatch(OttoMessage msg){
         switch (msg.getAction()){
-            case "getNews":{
+            case "getBlogs":{
                 swipeRefreshLayout.setRefreshing(true);
-                mNews.clear();
+                mBlogs.clear();
                 mAdapter.notifyDataSetChanged();
-                getCurrentLocation();
+                updateBlogs();
             }
             default:{
 
@@ -177,36 +148,32 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         Otto.unregister(this);
     }
 
-    private void updateNews(final Location location){
-        mCurrentLocation=location;
-        Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
 
-        builder.appendQueryParameter("method","getNews");
-        if (location != null) {
-            builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
-            builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
-        }
+    private void updateBlogs(){
+        Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
+        builder.appendQueryParameter("method","getBlogs");
+        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
         User user = mApp.getUser();
         if (user.isConnected()){
             builder.appendQueryParameter("user_id",user.getId());
             builder.appendQueryParameter("device_id",user.getDeviceId());
             builder.appendQueryParameter("access_key",user.getAccess_key());
         }
-        String newsUrl=builder.build().toString();
 
-        Request request = new JsonObjectRequest(Request.Method.GET, newsUrl, new Response.Listener<JSONObject>() {
+        String blogsUrl=builder.build().toString();
+
+        Request request = new JsonObjectRequest(Request.Method.GET, blogsUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.wtf("onResponse",response.toString());
                 try {
                     JSONArray items = response.getJSONArray("items");
+                    Gson gson = new Gson();
+                    JsonParser parser = new JsonParser();
                     for (int i=0;i<items.length();i++){
-                        JsonParser parser = new JsonParser();
                         JsonElement mJson =  parser.parse(items.get(i).toString());
-                        Gson gson = new Gson();
-                        New object = gson.fromJson(mJson, New.class);
-                        mNews.add(object);
+                        Blog object = gson.fromJson(mJson, Blog.class);
+                        mBlogs.add(object);
                     }
                     mAdapter.notifyDataSetChanged();
                     swipeRefreshLayout.setRefreshing(false);
@@ -227,19 +194,12 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         SingleVolley.getInstance(getContext()).addToRequestQueue(request);
     }
 
-    private void updateNews(final Location location, Long previous_id){
-        mCurrentLocation=location;
+    private void updateBlogs(Long previous_id){
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-
-
-        builder.appendQueryParameter("method","getNews");
+        builder.appendQueryParameter("method","getBlogs");
         builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
-        if (location != null) {
-            builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
-            builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
-        }
         if (null != previous_id){
-            builder.appendQueryParameter("last_news_id", String.valueOf(previous_id));
+            builder.appendQueryParameter("offset", String.valueOf(previous_id));
         }
         User user = mApp.getUser();
         if (user.isConnected()){
@@ -247,9 +207,9 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             builder.appendQueryParameter("device_id",user.getDeviceId());
             builder.appendQueryParameter("access_key",user.getAccess_key());
         }
-        String newsUrl=builder.build().toString();
+        String blogsUrl=builder.build().toString();
 
-        Request request = new JsonObjectRequest(Request.Method.GET, newsUrl, new Response.Listener<JSONObject>() {
+        Request request = new JsonObjectRequest(Request.Method.GET, blogsUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.wtf("onResponse",response.toString());
@@ -259,8 +219,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                         JsonParser parser = new JsonParser();
                         JsonElement mJson =  parser.parse(items.get(i).toString());
                         Gson gson = new Gson();
-                        New object = gson.fromJson(mJson, New.class);
-                        mNews.add(object);
+                        Blog object = gson.fromJson(mJson, Blog.class);
+                        mBlogs.add(object);
                     }
                     mAdapter.notifyDataSetChanged();
                     swipeRefreshLayout.setRefreshing(false);
@@ -276,39 +236,16 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                 Log.wtf("onErrorResponse",error.toString());
                 swipeRefreshLayout.setRefreshing(false);
                 Utils.showErrorMessage(getContext(),error.toString());
+
             }
         });
 
         SingleVolley.getInstance(getContext()).addToRequestQueue(request);
     }
 
-    public void getCurrentLocation() {
-        mFabUp.hide();
-
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        updateNews(location);
-                    }
-
-                })
-                .addOnFailureListener(getActivity(), new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        updateNews(null);
-                    }
-
-                });
-    }
 
     @Override
     public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
-        //mFabUp.show();
         if(scrollY<0) {
             if (linearLayoutManager.findFirstVisibleItemPosition() > 0) {
                 mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
@@ -317,16 +254,14 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             }
         }
         if(scrollY > 0) {
+            int pastVisiblesItems = linearLayoutManager.findFirstVisibleItemPosition();
             int visibleItemCount = linearLayoutManager.getChildCount();
             int totalItemCount = linearLayoutManager.getItemCount();
-            int pastVisiblesItems = linearLayoutManager.findFirstVisibleItemPosition();
-
             if (!isLoading) {
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-(App.COUNT_CARDS/2)) {
-                    mFabUp.hide();
                     isLoading=true;
-                    Log.wtf("onScrollChanged","Update news last_news_id = "+mNews.get(mNews.size() - 1).getId());
-                    updateNews(mCurrentLocation, mNews.get(mNews.size() - 1).getId());
+                    mFabUp.hide();
+                    updateBlogs(mBlogs.get(mBlogs.size() - 1).getId());
                 }
             }
         }
@@ -342,7 +277,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         if (scrollState==ScrollState.UP) {
             mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
         }else if (scrollState==ScrollState.DOWN) {
-            if (linearLayoutManager.findFirstVisibleItemPosition()>0) {
+            if (linearLayoutManager.findLastVisibleItemPosition()>0) {
                 mFabUp.show();
                 mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
             }else{
