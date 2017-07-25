@@ -47,7 +47,7 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
 
         ImageLoader imageLoader = SingleVolley.getInstance(mContext).getImageLoader();
 
-        imageLoader.get(mShop.getOwner_avatar(), new ImageLoader.ImageListener() {
+        imageLoader.get(mShop.getOwnerAvatar(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mOwnerImage.setImageBitmap(response.getBitmap());
@@ -59,8 +59,8 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
             }
         });
 //        holder.mOwnerImage.setImageUrl(mShop.getOwnerAvatar(), SingleVolley.getInstance(mContext).getImageLoader());
-        holder.mOwnerName.setText(mShop.getOwner_name());
-        holder.mDateAdd.setText(mShop.getDate_add());
+        holder.mOwnerName.setText(mShop.getOwnerName());
+        holder.mDateAdd.setText(mShop.getDateAdd());
         holder.mTitle.setText(mShop.getTitle());
         imageLoader.get(mShop.getImage(), new ImageLoader.ImageListener() {
             @Override
@@ -81,7 +81,7 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
         holder.mRating.setNumStars(5);
         holder.mRating.setRating(mShop.getRating());
         //holder.mRating
-        holder.mCounters.setText(String.format("{faw-comment} %d ",mShop.getReviews_count()));
+        holder.mCounters.setText(String.format("{faw-comment} %d ",mShop.getReviewsCount()));
     }
 
 

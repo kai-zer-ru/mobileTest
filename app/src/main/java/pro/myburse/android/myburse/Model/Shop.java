@@ -35,35 +35,35 @@ public class Shop {
         this.id = id;
     }
 
-    public int getOwner_id() {
+    public int getOwnerId() {
         return owner_id;
     }
 
-    public void setOwner_id(int owner_id) {
+    public void setOwnerId(int owner_id) {
         this.owner_id = owner_id;
     }
 
-    public String getOwner_name() {
+    public String getOwnerName() {
         return owner_name;
     }
 
-    public void setOwner_name(String owner_name) {
+    public void setOwnerName(String owner_name) {
         this.owner_name = owner_name;
     }
 
-    public String getOwner_url() {
+    public String getOwnerUrl() {
         return owner_url;
     }
 
-    public void setOwner_url(String owner_url) {
+    public void setOwnerUrl(String owner_url) {
         this.owner_url = owner_url;
     }
 
-    public String getOwner_avatar() {
+    public String getOwnerAvatar() {
         return owner_avatar;
     }
 
-    public void setOwner_avatar(String owner_avatar) {
+    public void setOwnerAvatar(String owner_avatar) {
         this.owner_avatar = owner_avatar;
     }
 
@@ -83,11 +83,11 @@ public class Shop {
         this.text = text;
     }
 
-    public String getDate_add() {
+    public String getDateAdd() {
         return date_add;
     }
 
-    public void setDate_add(String date_add) {
+    public void setDateAdd(String date_add) {
         this.date_add = date_add;
     }
 
@@ -99,19 +99,19 @@ public class Shop {
         this.image = image;
     }
 
-    public int getImage_width() {
+    public int getImageWidth() {
         return image_width;
     }
 
-    public void setImage_width(int image_width) {
+    public void setImageWidth(int image_width) {
         this.image_width = image_width;
     }
 
-    public int getImage_height() {
+    public int getImageHeight() {
         return image_height;
     }
 
-    public void setImage_height(int image_height) {
+    public void setImageHeight(int image_height) {
         this.image_height = image_height;
     }
 
@@ -147,11 +147,11 @@ public class Shop {
         this.distance = distance;
     }
 
-    public boolean is_my_shop() {
+    public boolean isMyShop() {
         return is_my_shop;
     }
 
-    public void setIs_my_shop(boolean is_my_shop) {
+    public void isMyShop(boolean is_my_shop) {
         this.is_my_shop = is_my_shop;
     }
 
@@ -163,11 +163,12 @@ public class Shop {
         this.rating = rating;
     }
 
-    public int getReviews_count() {
+    public int getReviewsCount() {
         return reviews_count;
     }
 
-    public void setReviews_count(int reviews_count) {
+    public void setReviewsCount(int reviews_count) {
         this.reviews_count = reviews_count;
     }
+
 }

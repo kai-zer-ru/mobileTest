@@ -22,7 +22,7 @@ public class User {
     private String city_name;
     private String region_name;
     private String country_name;
-    private Date birthday;
+    private String birthday;
     private Integer balance_bids;
     private Integer balance_bonus;
     private Integer balance_money;
@@ -136,11 +136,11 @@ public class User {
         this.lastName = lastName;
     }
 
-    public Date getBirthday() {
-        return (birthday==null?new Date():birthday);
+    public String getBirthday() {
+        return (birthday==null?"":birthday);
     }
 
-    public void setBirthday(Date birthday) {
+    public void setBirthday(String birthday) {
         this.birthday = birthday;
     }
 
@@ -152,59 +152,59 @@ public class User {
         this.password = password;
     }
 
-    public String getCity_name() {
+    public String getCityName() {
         return city_name;
     }
 
-    public void setCity_name(String city_name) {
+    public void setCityName(String city_name) {
         this.city_name = city_name;
     }
 
-    public String getRegion_name() {
+    public String getRegionName() {
         return region_name;
     }
 
-    public void setRegion_name(String region_name) {
+    public void setRegionName(String region_name) {
         this.region_name = region_name;
     }
 
-    public String getCountry_name() {
+    public String getCountryName() {
         return country_name;
     }
 
-    public void setCountry_name(String country_name) {
+    public void setCountryName(String country_name) {
         this.country_name = country_name;
     }
 
-    public String getAccess_key() {
+    public String getAccessKey() {
         return access_key;
     }
 
-    public void setAccess_key(String access_key) {
+    public void setAccessKey(String access_key) {
         this.access_key = access_key;
     }
 
-    public Integer getBalance_bids() {
+    public Integer getBalanceBids() {
         return balance_bids;
     }
 
-    public void setBalance_bids(Integer balance_bids) {
+    public void setBalanceBids(Integer balance_bids) {
         this.balance_bids = balance_bids;
     }
 
-    public Integer getBalance_bonus() {
+    public Integer getBalanceBonus() {
         return balance_bonus;
     }
 
-    public void setBalance_bonus(Integer balance_bonus) {
+    public void setBalanceBonus(Integer balance_bonus) {
         this.balance_bonus = balance_bonus;
     }
 
-    public Integer getBalance_money() {
+    public Integer getBalanceMoney() {
         return balance_money;
     }
 
-    public void setBalance_money(Integer balance_money) {
+    public void setBalanceMoney(Integer balance_money) {
         this.balance_money = balance_money;
     }
 
@@ -223,6 +223,6 @@ public class User {
     }
 
     public Boolean isConnected(){
-        return getAccess_key()!=null && !getAccess_key().isEmpty();
+        return getAccessKey()!=null && !getAccessKey().isEmpty();
     }
 }

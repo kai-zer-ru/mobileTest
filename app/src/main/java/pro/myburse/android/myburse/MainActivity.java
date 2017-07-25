@@ -4,12 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -24,6 +24,7 @@ import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
+import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
@@ -33,6 +34,8 @@ import com.mikepenz.materialdrawer.util.DrawerImageLoader;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.Utils.Firebase.Config;
@@ -97,15 +100,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Drawable icon_news = new IconicsDrawable(this)
-                .icon(CommunityMaterial.Icon.cmd_information)
-                .color(Color.GRAY);
-        Drawable icon_shops = new IconicsDrawable(this)
-                .icon(CommunityMaterial.Icon.cmd_store)
-                .color(Color.GRAY);
-        Drawable icon_blogs = new IconicsDrawable(this)
-                .icon(CommunityMaterial.Icon.cmd_newspaper)
-                .color(Color.GRAY);
         mAccountHeader = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withSelectionListEnabledForSingleProfile(false)
@@ -153,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
 
         PrimaryDrawerItem primaryDrawerItem = new PrimaryDrawerItem()
                 .withIdentifier(0)
-                .withIcon(icon_news)
+                .withIcon(CommunityMaterial.Icon.cmd_information)
                 .withName("Новости")
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
@@ -167,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
         primaryDrawerItem = new PrimaryDrawerItem()
                 .withIdentifier(1)
-                .withIcon(icon_shops)
+                .withIcon(CommunityMaterial.Icon.cmd_store)
                 .withName("Магазины")
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
@@ -181,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
         primaryDrawerItem = new PrimaryDrawerItem()
                 .withIdentifier(2)
-                .withIcon(icon_blogs)
+                .withIcon(CommunityMaterial.Icon.cmd_newspaper)
                 .withName("Блоги")
                 .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
                     @Override
@@ -193,8 +187,26 @@ public class MainActivity extends AppCompatActivity {
 
         mDrawer.addItem(primaryDrawerItem);
 
+        mDrawer.addItem(new DividerDrawerItem());
+
+        primaryDrawerItem = new PrimaryDrawerItem()
+                .withIdentifier(2)
+                .withIcon(CommunityMaterial.Icon.cmd_face_profile)
+                .withName("Профиль")
+                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                    @Override
+                    public boolean onItemClick(View view, int position, IDrawerItem drawerItem) {
+                        getProfile();
+                        return false;
+                    }
+                });
+
+        mDrawer.addItem(primaryDrawerItem);
+
         mUser = mApp.getUser();
-        if (mUser!=null&&mUser.isConnected()&&mUser.getDeviceId().equals(mApp.getDeviceId())){
+        if (mUser!=null&&mUser.isConnected()&&
+                mUser.getDeviceId().equals(mApp.getDeviceId())&&
+                savedInstanceState==null){
             updateProfile();
         }
     }
@@ -203,11 +215,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         NotificationUtils.clearNotifications(getApplicationContext());
-
+/*
         FragmentManager fragmentManager = getSupportFragmentManager();
-        if (fragmentManager.getBackStackEntryCount()==0) {
+        if (fragmentManager.) {
             getNews();
-        }
+        }*/
     }
 
     @Override
@@ -217,16 +229,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     private void getNews(){
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment fragment = fragmentManager.findFragmentByTag(FragmentNews.class.getSimpleName());
         if (fragment==null) {
-            fragmentManager.popBackStack();
+            if (fragmentManager.getBackStackEntryCount()>0) {
+                fragmentManager.popBackStack();
+            }
             fragment = FragmentNews.getInstance();
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
-                    .addToBackStack(fragment.getClass().getSimpleName())
                     .commit();
         } else {
             Otto.post(new OttoMessage("getNews",null));
@@ -238,13 +252,13 @@ public class MainActivity extends AppCompatActivity {
         Fragment fragment = fragmentManager.findFragmentByTag(FragmentShops.class.getSimpleName());
 
         if (fragment==null) {
-            fragmentManager.popBackStack();
+            if (fragmentManager.getBackStackEntryCount()>0) {
+                fragmentManager.popBackStack();
+            }
             fragment = FragmentShops.getInstance();
-
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
-                    .addToBackStack(fragment.getClass().getSimpleName())
                     .commit();
         } else {
             Otto.post(new OttoMessage("getShops",null));
@@ -257,25 +271,50 @@ public class MainActivity extends AppCompatActivity {
         Fragment fragment = fragmentManager.findFragmentByTag(FragmentBlogs.class.getSimpleName());
 
         if (fragment==null) {
-            fragmentManager.popBackStack();
+            if (fragmentManager.getBackStackEntryCount()>0) {
+                fragmentManager.popBackStack();
+            }
             fragment = FragmentBlogs.getInstance();
-
             fragmentManager
                     .beginTransaction()
                     .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
-                    .addToBackStack(fragment.getClass().getSimpleName())
                     .commit();
         } else {
             Otto.post(new OttoMessage("getBlogs",null));
         }
-
     }
+
+    private void getProfile(){
+        if (!isUserConnected()){
+            mDrawer.closeDrawer();
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        }else {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            Fragment fragment = fragmentManager.findFragmentByTag(FragmentProfile.class.getSimpleName());
+            if (fragment == null) {
+                fragment = FragmentProfile.getInstance();
+                fragmentManager
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
+                        .addToBackStack(fragment.getClass().getSimpleName())
+                        .commit();
+            } else {
+                Otto.post(new OttoMessage("getProfile", null));
+            }
+        }
+    }
+
     @Override
     public void onBackPressed() {
         if (mDrawer.isDrawerOpen()) {
             mDrawer.closeDrawer();
         } else {
-            finish();
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            if (fragmentManager.getBackStackEntryCount()>0) {
+                fragmentManager.popBackStack();
+            } else {
+                super.onBackPressed();
+            }
         }
     }
 
@@ -287,7 +326,15 @@ public class MainActivity extends AppCompatActivity {
                     updateProfile();
                     Otto.post(new OttoMessage("getNews",null));
                     Otto.post(new OttoMessage("getShops",null));
-                    Toast.makeText(this, mApp.getUser().getAccess_key(), Toast.LENGTH_SHORT).show();
+                }
+                case "getPost":{
+                    FragmentManager fragmentManager = getSupportFragmentManager();
+                    Fragment   fragment = FragmentPost.getInstance((long)msg.getData());
+                    fragmentManager
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
+                        .addToBackStack(fragment.getClass().getSimpleName())
+                        .commit();
                 }
                 default: {
 
@@ -308,12 +355,16 @@ public class MainActivity extends AppCompatActivity {
         } else if (mUser.getUrlImage()!=null){
             profile.withIcon(Uri.parse(mUser.getUrlImage()));
         }
-
         mAccountHeader.getProfiles().clear();
         mAccountHeader.removeProfile(0);
         mAccountHeader.addProfile(profile,0);
         mAccountHeader.setActiveProfile(0);
         mDrawer.openDrawer();
-
     }
+
+    private boolean isUserConnected(){
+        User user = mApp.getUser();
+        return (user!=null && user.isConnected());
+    }
+
 }

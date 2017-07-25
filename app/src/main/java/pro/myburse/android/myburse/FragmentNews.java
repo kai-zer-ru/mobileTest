@@ -67,6 +67,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     private  LinearLayoutManager linearLayoutManager;
     private Location mCurrentLocation;
     private boolean isLoading = false;
+    private boolean alreadyLoaded = false;
 
 
     public FragmentNews(){
@@ -125,7 +126,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState==null) {
+        if (savedInstanceState==null && !alreadyLoaded) {
+            alreadyLoaded = true;
             if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -191,7 +193,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         if (user.isConnected()){
             builder.appendQueryParameter("user_id",user.getId());
             builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccess_key());
+            builder.appendQueryParameter("access_key",user.getAccessKey());
         }
         String newsUrl=builder.build().toString();
 
@@ -245,7 +247,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         if (user.isConnected()){
             builder.appendQueryParameter("user_id",user.getId());
             builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccess_key());
+            builder.appendQueryParameter("access_key",user.getAccessKey());
         }
         String newsUrl=builder.build().toString();
 

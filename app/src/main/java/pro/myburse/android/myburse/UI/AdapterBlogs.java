@@ -2,6 +2,8 @@ package pro.myburse.android.myburse.UI;
 
 import android.content.Context;
 import android.os.Build;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -11,26 +13,35 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mikepenz.iconics.view.IconicsTextView;
+import com.squareup.otto.Bus;
 
 import java.util.ArrayList;
 
 import me.zhanghai.android.materialratingbar.MaterialRatingBar;
+import pro.myburse.android.myburse.App;
+import pro.myburse.android.myburse.FragmentProfile;
 import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.R;
+import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
 
 
 public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHolder> {
     ArrayList<Blog> mBlogs;
     Context mContext;
+    Bus Otto;
+    App mApp;
 
-    public AdapterBlogs(ArrayList<Blog> blogs){
+    public AdapterBlogs(ArrayList<Blog> blogs, App app){
         super();
         this.mBlogs=blogs;
+        mApp = app;
+        Otto = mApp.getOtto();
     }
 
     @Override
@@ -41,7 +52,7 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
     }
 
     @Override
-    public void onBindViewHolder(final BlogViewHolder holder, int position) {
+    public void onBindViewHolder(final BlogViewHolder holder, final int position) {
         final Blog mBlog = mBlogs.get(position);
         ImageLoader imageLoader = SingleVolley.getInstance(mContext).getImageLoader();
 
@@ -57,7 +68,7 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
             }
         });
         holder.mOwnerName.setText(mBlog.getOwnerName());
-        holder.mDateAdd.setText(mBlog.getDate_add());
+        holder.mDateAdd.setText(mBlog.getDateAdd());
         holder.mTitle.setText(mBlog.getTitle());
 
         imageLoader.get(mBlog.getImage(), new ImageLoader.ImageListener() {
@@ -80,7 +91,15 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
         holder.mRating.setNumStars(5);
         holder.mRating.setRating(mBlog.getRating());
         holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mBlog.getCommentsCount(),mBlog.getLikesCount()));
+
+        holder.cv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Otto.post(new OttoMessage("getPost", mBlog.getId()));
+            }
+        });
     }
+
 
 
     @Override

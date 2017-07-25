@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -18,34 +19,34 @@ import com.mikepenz.iconics.view.IconicsTextView;
 
 import java.util.ArrayList;
 
+import me.zhanghai.android.materialratingbar.MaterialRatingBar;
+import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Model.New;
 
 
-
-public class AdapterNews extends RecyclerView.Adapter<AdapterNews.NewViewHolder> {
-    ArrayList<New> mNews;
+public class AdapterPost extends RecyclerView.Adapter<AdapterPost.BlogViewHolder> {
+    ArrayList<Blog> mBlogs;
     Context mContext;
 
-    public AdapterNews(ArrayList<New> news){
+    public AdapterPost(ArrayList<Blog> blogs){
         super();
-        this.mNews=news;
+        this.mBlogs=blogs;
     }
 
     @Override
-    public NewViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public BlogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
-        View view = LayoutInflater.from(mContext).inflate(R.layout.card_new, parent, false);
-        return new NewViewHolder(view);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.card_shop, parent, false);
+        return new BlogViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final NewViewHolder holder, int position) {
-        final New mNew = mNews.get(position);
+    public void onBindViewHolder(final BlogViewHolder holder, final int position) {
+        final Blog mBlog = mBlogs.get(position);
         ImageLoader imageLoader = SingleVolley.getInstance(mContext).getImageLoader();
 
-        imageLoader.get(mNew.getOwnerAvatar(), new ImageLoader.ImageListener() {
+        imageLoader.get(mBlog.getOwnerAvatar(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mOwnerImage.setImageBitmap(response.getBitmap());
@@ -56,12 +57,11 @@ public class AdapterNews extends RecyclerView.Adapter<AdapterNews.NewViewHolder>
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-        holder.mOwnerName.setText(mNew.getOwnerName());
-        holder.mItemType.setText(mNew.getItemType());
-        holder.mDateAdd.setText(mNew.getDateAdd());
-        holder.mTitle.setText(mNew.getTitle());
+        holder.mOwnerName.setText(mBlog.getOwnerName());
+        holder.mDateAdd.setText(mBlog.getDateAdd());
+        holder.mTitle.setText(mBlog.getTitle());
 
-      imageLoader.get(mNew.getImage(), new ImageLoader.ImageListener() {
+        imageLoader.get(mBlog.getImage(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mImage.setImageBitmap(response.getBitmap());
@@ -72,46 +72,49 @@ public class AdapterNews extends RecyclerView.Adapter<AdapterNews.NewViewHolder>
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-        //Picasso.with(holder.mImage.getContext()).load(mNew.getImage()).placeholder(android.R.drawable.progress_horizontal).into(holder.mImage);
         //holder.mPreview.setText(mNew.getText());
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N) {
-            holder.mPreview.setText(Html.fromHtml(mNew.getText(), Html.FROM_HTML_MODE_COMPACT));
+            holder.mPreview.setText(Html.fromHtml(mBlog.getText(), Html.FROM_HTML_MODE_COMPACT));
         }else {
-            holder.mPreview.setText(Html.fromHtml(mNew.getText()));
+            holder.mPreview.setText(Html.fromHtml(mBlog.getText()));
         }
-        holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mNew.getCommentsCount(),mNew.getLikesCount()));
+        holder.mRating.setNumStars(5);
+        holder.mRating.setRating(mBlog.getRating());
+        holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mBlog.getCommentsCount(),mBlog.getLikesCount()));
+
     }
 
 
     @Override
     public int getItemCount() {
-        return mNews.size();
+        return mBlogs.size();
     }
 
-    static class NewViewHolder extends RecyclerView.ViewHolder{
+    static class BlogViewHolder extends RecyclerView.ViewHolder{
 
         CardView cv;
         ImageView mOwnerImage;
         TextView mOwnerName;
-        TextView mItemType;
         TextView mDateAdd;
         TextView mTitle;
         ImageView mImage;
         TextView mPreview;
+        MaterialRatingBar mRating;
         IconicsTextView mCounters;
 
 
-        private NewViewHolder(View itemView) {
+        private BlogViewHolder(View itemView) {
             super(itemView);
             cv =  itemView.findViewById(R.id.cv);
-            mOwnerImage = cv.findViewById(R.id.new_owner_img);
-            mOwnerName = cv.findViewById(R.id.new_owner_name);
-            mItemType = cv.findViewById(R.id.new_item_type);
-            mDateAdd = cv.findViewById(R.id.new_date_add);
-            mTitle = cv.findViewById(R.id.new_title);
-            mImage = cv.findViewById(R.id.new_img);
-            mPreview = cv.findViewById(R.id.new_preview);
-            mCounters = cv.findViewById(R.id.ic_counters);
+            mOwnerImage = cv.findViewById(R.id.shop_owner_img);
+            mOwnerName = cv.findViewById(R.id.shop_owner_name);
+            mDateAdd = cv.findViewById(R.id.shop_date_add);
+            mTitle = cv.findViewById(R.id.shop_title);
+            mImage = cv.findViewById(R.id.shop_img);
+            mPreview = cv.findViewById(R.id.shop_preview);
+            mRating = cv.findViewById(R.id.shop_rating);
+            mCounters = cv.findViewById(R.id.shop_counters);
+
         }
 
     }

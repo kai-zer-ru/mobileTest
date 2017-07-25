@@ -66,11 +66,11 @@ public class New {
         this.text = text;
     }
 
-    public String getDate_add() {
+    public String getDateAdd() {
         return date_add;
     }
 
-    public void setDate_add(String date_add) {
+    public void setDateAdd(String date_add) {
         this.date_add = date_add;
     }
 
@@ -82,19 +82,19 @@ public class New {
         this.image = image;
     }
 
-    public int getImage_width() {
+    public int getImageWidth() {
         return image_width;
     }
 
-    public void setImage_width(int image_width) {
+    public void setImageWidth(int image_width) {
         this.image_width = image_width;
     }
 
-    public int getImage_height() {
+    public int getImageHeight() {
         return image_height;
     }
 
-    public void setImage_height(int image_height) {
+    public void setImageHeight(int image_height) {
         this.image_height = image_height;
     }
 
@@ -122,51 +122,51 @@ public class New {
         this.longitude = longitude;
     }
 
-    public double getOwner_id() {
+    public double getOwnerId() {
         return owner_id;
     }
 
-    public void setOwner_id(double owner_id) {
+    public void setOwnerId(double owner_id) {
         this.owner_id = owner_id;
     }
 
-    public String getOwner_name() {
+    public String getOwnerName() {
         return owner_name;
     }
 
-    public void setOwner_name(String owner_name) {
+    public void setOwnerName(String owner_name) {
         this.owner_name = owner_name;
     }
 
-    public String getOwner_url() {
+    public String getOwnerUrl() {
         return owner_url;
     }
 
-    public void setOwner_url(String owner_url) {
+    public void setOwnerUrl(String owner_url) {
         this.owner_url = owner_url;
     }
 
-    public String getOwner_avatar() {
+    public String getOwnerAvatar() {
         return owner_avatar;
     }
 
-    public void setOwner_avatar(String owner_avatar) {
+    public void setOwnerAvatar(String owner_avatar) {
         this.owner_avatar = owner_avatar;
     }
 
-    public String getItem_type() {
+    public String getItemType() {
         return item_type;
     }
 
-    public void setItem_type(String item_type) {
+    public void setItemType(String item_type) {
         this.item_type = item_type;
     }
 
-    public String getProduct_type() {
+    public String getProductType() {
         return product_type;
     }
 
-    public void setProduct_type(String product_type) {
+    public void setProductType(String product_type) {
         this.product_type = product_type;
     }
 
@@ -178,27 +178,27 @@ public class New {
         this.distance = distance;
     }
 
-    public int getComments_count() {
+    public int getCommentsCount() {
         return comments_count;
     }
 
-    public void setComments_count(int comments_count) {
+    public void setCommentsCount(int comments_count) {
         this.comments_count = comments_count;
     }
 
-    public int getLikes_count() {
+    public int getLikesCount() {
         return likes_count;
     }
 
-    public void setLikes_count(int likes_count) {
+    public void setLikesCount(int likes_count) {
         this.likes_count = likes_count;
     }
 
-    public int getReposts_count() {
+    public int getRepostsCount() {
         return reposts_count;
     }
 
-    public void setReposts_count(int reposts_count) {
+    public void setRepostsCount(int reposts_count) {
         this.reposts_count = reposts_count;
     }
 }

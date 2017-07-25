@@ -11,10 +11,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKParameters;
@@ -27,7 +29,9 @@ import com.vk.sdk.api.model.VKUsersArray;
 import java.util.List;
 
 import pro.myburse.android.myburse.Model.User;
+import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
+import pro.myburse.android.myburse.Utils.Utils;
 
 public class FragmentProfile extends Fragment {
 
@@ -41,10 +45,10 @@ public class FragmentProfile extends Fragment {
     public FragmentProfile() {
     }
 
-
-    public static FragmentProfile newInstance() {
+    public static FragmentProfile getInstance(){
         return new FragmentProfile();
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,49 +63,19 @@ public class FragmentProfile extends Fragment {
                              Bundle savedInstanceState) {
         View viewRoot = inflater.inflate(R.layout.fragment_profile, container, false);
         ivImage = viewRoot.findViewById(R.id.ivImage);
-        if (mUser.getSocialNetworkId()==App.SOCIAL_ID_VK){
-            VKRequest yourRequest = VKApi.users().get(VKParameters.from(VKApiConst.FIELDS,"photo_50"));
-            yourRequest.executeWithListener(new VKRequest.VKRequestListener() {
-                    @Override
-                    public void onComplete(VKResponse response) {
-                        super.onComplete(response);
-
-                        List usersArray = (VKList) response.parsedModel;
-
-                        VKApiUserFull userFull = (VKApiUserFull) usersArray.get(0);
-                        User mUser = mApp.getUser();
-                        mUser.setUrlImage_50(((VKApiUserFull) usersArray.get(0)).photo_50);
-                        mApp.setUser(mUser);
-                        SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage_50(), new ImageLoader.ImageListener() {
-                            @Override
-                            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                                ivImage.setImageBitmap(response.getBitmap());
-                            }
-
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                ivImage.setBackgroundColor(ContextCompat.getColor(getContext(),R.color.md_grey_50));
-                            }
-                        });
-                    }
+        String url = (mUser.getUrlImage_50()==null)?mUser.getUrlImage():mUser.getUrlImage_50();
+        if (url!=null) {
+            SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage(), new ImageLoader.ImageListener() {
+                @Override
+                public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                    ivImage.setImageBitmap(response.getBitmap());
                 }
-            );
-        }else{
-            String url = (mUser.getUrlImage_50()==null)?mUser.getUrlImage():mUser.getUrlImage_50();
-            if (url!=null) {
-                SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage(), new ImageLoader.ImageListener() {
-                    @Override
-                    public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
-                        ivImage.setImageBitmap(response.getBitmap());
-                    }
 
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        ivImage.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.md_grey_50));
-                    }
-                });
-            }
-
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    ivImage.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.md_grey_50));
+                }
+            });
         }
         tvId = viewRoot.findViewById(R.id.id);
         tvId.setText(String.valueOf(mUser.getId()));
@@ -139,13 +113,45 @@ public class FragmentProfile extends Fragment {
         return viewRoot;
     }
 
+    @Subscribe
+    public void OttoDispatch(OttoMessage msg){
+        try {
+            switch (msg.getAction()) {
+                case "getProfile": {
+                    String url = (mUser.getUrlImage_50()==null)?mUser.getUrlImage():mUser.getUrlImage_50();
+                    if (url!=null) {
+                        SingleVolley.getInstance(getContext()).getImageLoader().get(mUser.getUrlImage(), new ImageLoader.ImageListener() {
+                            @Override
+                            public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+                                ivImage.setImageBitmap(response.getBitmap());
+                            }
 
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                ivImage.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.md_grey_50));
+                            }
+                        });
+                    }
+                    tvId.setText(String.valueOf(mUser.getId()));
+                    tvFirstName.setText(mUser.getFirstName());
+                    tvLastName.setText(mUser.getLastName());
+                    tvSocialNetworkId.setText(String.valueOf(mUser.getSocialNetworkId()));
+                    tvSocialNetworkName.setText(mUser.getSocialNetworkName());
+                    tvExtId.setText(mUser.getExtId());
+                    tvDeviceId.setText(mApp.getDeviceId());
+                    tvPhone.setText(mUser.getPhone());
+                    tvEmail.setText(mUser.getEmail());
+                    tvBirthday.setText(mUser.getBirthday().toString());
+                    tvPassword.setText(mUser.getPassword());
+                }
+                default: {
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
+                }
+            }
+        }catch (Exception e){
+            Utils.showErrorMessage(getContext(), e.getMessage());
+        }
     }
 
-
-
+    
 }

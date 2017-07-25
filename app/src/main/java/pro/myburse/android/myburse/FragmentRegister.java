@@ -229,7 +229,7 @@ public class FragmentRegister extends Fragment {
                         try {
                             getActivity().getSupportFragmentManager().beginTransaction()
                                     .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
-                                    .replace(R.id.container, FragmentProfile.newInstance())
+                                    .replace(R.id.container, FragmentProfile.getInstance())
                                     .addToBackStack(null)
                                     .commit();
                         } catch (Exception e) {

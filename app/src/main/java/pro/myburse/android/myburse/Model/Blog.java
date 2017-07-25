@@ -53,11 +53,11 @@ public class Blog {
         this.text = text;
     }
 
-    public String getDate_add() {
+    public String getDateAdd() {
         return date_add;
     }
 
-    public void setDate_add(String date_add) {
+    public void setDateAdd(String date_add) {
         this.date_add = date_add;
     }
 
@@ -69,19 +69,19 @@ public class Blog {
         this.image = image;
     }
 
-    public int getImage_width() {
+    public int getImageWidth() {
         return image_width;
     }
 
-    public void setImage_width(int image_width) {
+    public void setImageWidth(int image_width) {
         this.image_width = image_width;
     }
 
-    public int getImage_height() {
+    public int getImageHeight() {
         return image_height;
     }
 
-    public void setImage_height(int image_height) {
+    public void setImageHeight(int image_height) {
         this.image_height = image_height;
     }
 
@@ -109,11 +109,11 @@ public class Blog {
         this.longitude = longitude;
     }
 
-    public double getOwner_id() {
+    public double getOwnerId() {
         return owner_id;
     }
 
-    public void setOwner_id(double owner_id) {
+    public void setOwnerId(double owner_id) {
         this.owner_id = owner_id;
     }
 
@@ -165,11 +165,11 @@ public class Blog {
         this.likes_count = likes_count;
     }
 
-    public boolean is_my_post() {
+    public boolean isMyPost() {
         return is_my_post;
     }
 
-    public void setIs_my_post(boolean is_my_post) {
+    public void setIsMyPost(boolean is_my_post) {
         this.is_my_post = is_my_post;
     }
 

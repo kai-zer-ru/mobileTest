@@ -50,7 +50,6 @@ import android.view.MenuItem;
         }
 
         private void homeAsUpByBackStack() {
-
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
@@ -58,9 +57,7 @@ import android.view.MenuItem;
         public boolean onOptionsItemSelected(MenuItem item) {
             switch (item.getItemId()) {
                 case android.R.id.home:
-
                     onBackPressed();
-
                     //getSupportFragmentManager().popBackStack();
                     //return true;
             }
@@ -90,10 +87,5 @@ import android.view.MenuItem;
             }
         }
 
-    @Override
-    public void onBackPressed() {
-
-        super.onBackPressed();
-    }
 }
 

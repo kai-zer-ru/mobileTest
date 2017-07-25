@@ -98,10 +98,10 @@ public class FragmentMyBurseLogin extends Fragment
                                     user.setEmail(response.getString("email"));
                                     user.setLogin(response.getString("login"));
                                     user.setPhone(response.getString("phone_number"));
-                                    user.setAccess_key(response.getString("access_key"));
-                                    user.setBalance_bids(response.getInt("balance_bids"));
-                                    user.setBalance_bonus(response.getInt("balance_bonus"));
-                                    user.setBalance_money(response.getInt("balance_money"));
+                                    user.setAccessKey(response.getString("access_key"));
+                                    user.setBalanceBids(response.getInt("balance_bids"));
+                                    user.setBalanceBonus(response.getInt("balance_bonus"));
+                                    user.setBalanceMoney(response.getInt("balance_money"));
                                     user.setUrlImage_50(response.getString("avatar"));
                                     mApp.setUser(user);
                                     mApp.setLogin(response.getString("login"));

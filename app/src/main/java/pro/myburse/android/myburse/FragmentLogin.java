@@ -293,13 +293,7 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                     mUser.setFirstName(vkPerson.firstName);
                     mUser.setLastName(vkPerson.lastName);
                     mUser.setEmail(vkPerson.email);
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd.M.yyyy");
-                    try {
-                        mUser.setBirthday(dateFormat.parse(vkPerson.birthday));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                        mUser.setBirthday(null);
-                    }
+                    mUser.setBirthday(vkPerson.birthday);
                     mUser.setSocialNetworkName("ВКонтакте");
                     mUser.setSocialNetworkId(App.SOCIAL_ID_VK);
                     mUser.setPhone(vkPerson.mobilePhone);
@@ -322,19 +316,12 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                     mUser.setExtId(okPerson.id);
                     mUser.setFirstName(okPerson.firstName);
                     mUser.setLastName(okPerson.lastName);
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-                    try {
-                        mUser.setBirthday(dateFormat.parse(okPerson.birthday));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                        mUser.setBirthday(null);
-                    }
+                    mUser.setBirthday(okPerson.birthday);
                     mUser.setSocialNetworkId(App.SOCIAL_ID_OK);
                     mUser.setSocialNetworkName("Одноклассники");
                     mUser.setEmail(okPerson.email);
                     mUser.setUrlImage(okPerson.avatarURL);
                     mApp.setUser(mUser);
-
                     registerSocialNetwork(mUser);
                     break;
                 }
@@ -344,15 +331,7 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                     mUser.setFirstName(fbPerson.firstName);
                     mUser.setMiddleName(fbPerson.middleName);
                     mUser.setLastName(fbPerson.lastName);
-                    if (fbPerson.birthday!=null) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.M.yyyy");
-                        try {
-                            mUser.setBirthday(dateFormat.parse(fbPerson.birthday));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                            mUser.setBirthday(null);
-                        }
-                    }
+                    mUser.setBirthday(fbPerson.birthday);
                     mUser.setSocialNetworkId(App.SOCIAL_ID_FB);
                     mUser.setSocialNetworkName("Facebook");
                     mUser.setEmail(fbPerson.email);
@@ -419,9 +398,6 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
         request.executeAsync();
     }
 
-    private void registerMyBurse(final User user){
-
-    }
 
     private void registerSocialNetwork(final User user){
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
@@ -433,7 +409,7 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
         builder.appendQueryParameter("middlename", user.getMiddleName());
         builder.appendQueryParameter("lastname", user.getLastName());
         builder.appendQueryParameter("avatar", (user.getUrlImage_50()==null)?user.getUrlImage():user.getUrlImage_50());
-        builder.appendQueryParameter("birthday", (user.getBirthday()==null)?"": new SimpleDateFormat("yyyy-MM-dd").format(user.getBirthday()));
+        builder.appendQueryParameter("birthday", user.getBirthday());
         builder.appendQueryParameter("email", (user.getEmail()==null)?"":user.getEmail());
         String registerUrl=builder.build().toString();
 
@@ -447,16 +423,17 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                             user.setId(response.getString("user_id"));
                             user.setEmail(response.getString("email"));
                             user.setPhone(response.getString("phone_number"));
-                            user.setAccess_key(response.getString("access_key"));
-                            user.setBalance_bids(response.getInt("balance_bids"));
-                            user.setBalance_bonus(response.getInt("balance_bonus"));
-                            user.setBalance_money(response.getInt("balance_money"));
+                            user.setAccessKey(response.getString("access_key"));
+                            user.setBalanceBids(response.getInt("balance_bids"));
+                            user.setBalanceBonus(response.getInt("balance_bonus"));
+                            user.setBalanceMoney(response.getInt("balance_money"));
                             user.setUrlImage_50(response.getString("avatar"));
                             mApp.setUser(user);
                             LoginActivity.hideProgress();
                             Otto.post(new OttoMessage("updateProfile", null));
                             getActivity().onBackPressed();
                         } catch (JSONException e) {
+                            Utils.showErrorMessage(getContext(),"Ошибка: "+e.toString());
                             e.printStackTrace();
                         }
                     } else {

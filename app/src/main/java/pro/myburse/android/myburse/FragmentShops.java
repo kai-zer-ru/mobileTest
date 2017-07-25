@@ -53,7 +53,6 @@ import pro.myburse.android.myburse.Model.Shop;
 import pro.myburse.android.myburse.Utils.Utils;
 
 
-
 public class FragmentShops extends Fragment implements ObservableScrollViewCallbacks{
 
     private App mApp;
@@ -68,6 +67,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
     private  LinearLayoutManager linearLayoutManager;
     private Location mCurrentLocation;
     private boolean isLoading = false;
+    private boolean alreadyLoaded = false;
 
     public FragmentShops(){
        mShops = new ArrayList<>();
@@ -123,7 +123,6 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         return viewRoot;
     }
 
-
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -133,7 +132,8 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState == null){
+        if (savedInstanceState==null && !alreadyLoaded) {
+            alreadyLoaded = true;
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
             if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -184,7 +184,6 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         Otto.unregister(this);
     }
 
-
     private void updateShops(final Location location){
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
@@ -198,7 +197,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         if (user.isConnected()){
             builder.appendQueryParameter("user_id",user.getId());
             builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccess_key());
+            builder.appendQueryParameter("access_key",user.getAccessKey());
         }
         String newsUrl=builder.build().toString();
 
@@ -250,7 +249,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         if (user.isConnected()){
             builder.appendQueryParameter("user_id",user.getId());
             builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccess_key());
+            builder.appendQueryParameter("access_key",user.getAccessKey());
         }
         String newsUrl=builder.build().toString();
 
@@ -298,14 +297,14 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
                 .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
-                        FragmentShops.this.updateShops(location);
+                        updateShops(location);
                     }
 
                 })
                 .addOnFailureListener(getActivity(), new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        FragmentShops.this.updateShops(null);
+                        updateShops(null);
                     }
 
                 });

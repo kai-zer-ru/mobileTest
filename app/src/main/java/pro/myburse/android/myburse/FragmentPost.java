@@ -38,30 +38,35 @@ import java.util.ArrayList;
 import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.UI.AdapterBlogs;
+import pro.myburse.android.myburse.UI.AdapterPost;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
 import pro.myburse.android.myburse.Utils.Utils;
 
 
-public class FragmentBlogs extends Fragment implements ObservableScrollViewCallbacks{
+public class FragmentPost extends Fragment implements ObservableScrollViewCallbacks{
 
     private App mApp;
     private Bus Otto;
-    private ArrayList<Blog> mBlogs;
+    private ArrayList<Blog> mPosts;
     private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton mFabUp;
     private ObservableRecyclerView mRV;
-    private AdapterBlogs mAdapter;
+    private AdapterPost mAdapter;
     private  LinearLayoutManager linearLayoutManager;
     private boolean isLoading = false;
     private boolean alreadyLoaded = false;
+    private long post_id;
 
-    public FragmentBlogs(){
-       mBlogs = new ArrayList<>();
+    public FragmentPost(){
+       mPosts = new ArrayList<>();
     }
 
-    public static FragmentBlogs getInstance(){
-        FragmentBlogs fragment = new FragmentBlogs();
+    public static FragmentPost getInstance(long post_id){
+        FragmentPost fragment = new FragmentPost();
+        Bundle args = new Bundle();
+        args.putLong("post_id", post_id);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -72,6 +77,11 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
         mApp = (App) getActivity().getApplication();
         Otto = mApp.getOtto();
         Otto.register(this);
+        if (getArguments()!=null){
+            post_id = getArguments().getLong("post_id");
+        } else{
+            post_id=-1;
+        }
     }
 
     @Nullable
@@ -83,7 +93,7 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
         linearLayoutManager= new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRV.setLayoutManager(linearLayoutManager);
-        mAdapter = new AdapterBlogs(mBlogs, mApp);
+        mAdapter = new AdapterPost(mPosts);
         //mAdapter.setMode(Attributes.Mode.Single);
         mRV.setAdapter(mAdapter);
         mRV.setScrollViewCallbacks(this);
@@ -92,9 +102,9 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mBlogs.clear();
+                mPosts.clear();
                 mAdapter.notifyDataSetChanged();
-                updateBlogs();
+                updatePosts(post_id);
             }
         });
 
@@ -123,24 +133,9 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
         if (savedInstanceState==null && !alreadyLoaded) {
             alreadyLoaded = true;
             swipeRefreshLayout.setRefreshing(true);
-            mBlogs.clear();
+            mPosts.clear();
             mAdapter.notifyDataSetChanged();
-            updateBlogs();
-        }
-    }
-
-    @Subscribe
-    public void OttoDispatch(OttoMessage msg){
-        switch (msg.getAction()){
-            case "getBlogs":{
-                swipeRefreshLayout.setRefreshing(true);
-                mBlogs.clear();
-                mAdapter.notifyDataSetChanged();
-                updateBlogs();
-            }
-            default:{
-
-            }
+            updatePosts(post_id);
         }
     }
 
@@ -151,20 +146,19 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
     }
 
 
-    private void updateBlogs(){
+    private void updatePosts(long id){
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","getBlogs");
-        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
+        builder.appendQueryParameter("method","getBlogPostData");
         User user = mApp.getUser();
-        if (user.isConnected()){
-            builder.appendQueryParameter("user_id",user.getId());
-            builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccessKey());
-        }
+        builder.appendQueryParameter("user_id",user.getId());
+        builder.appendQueryParameter("device_id",user.getDeviceId());
+        builder.appendQueryParameter("access_key",user.getAccessKey());
+        builder.appendQueryParameter("post_id", String.valueOf(id));
 
-        String blogsUrl=builder.build().toString();
 
-        Request request = new JsonObjectRequest(Request.Method.GET, blogsUrl, new Response.Listener<JSONObject>() {
+        String postsUrl=builder.build().toString();
+
+        Request request = new JsonObjectRequest(Request.Method.GET, postsUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.wtf("onResponse",response.toString());
@@ -175,7 +169,7 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
                     for (int i=0;i<items.length();i++){
                         JsonElement mJson =  parser.parse(items.get(i).toString());
                         Blog object = gson.fromJson(mJson, Blog.class);
-                        mBlogs.add(object);
+                        mPosts.add(object);
                     }
                     mAdapter.notifyDataSetChanged();
                     swipeRefreshLayout.setRefreshing(false);
@@ -196,54 +190,6 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
         SingleVolley.getInstance(getContext()).addToRequestQueue(request);
     }
 
-    private void updateBlogs(Long previous_id){
-        Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","getBlogs");
-        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
-        if (null != previous_id){
-            builder.appendQueryParameter("offset", String.valueOf(previous_id));
-        }
-        User user = mApp.getUser();
-        if (user.isConnected()){
-            builder.appendQueryParameter("user_id",user.getId());
-            builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccessKey());
-        }
-        String blogsUrl=builder.build().toString();
-
-        Request request = new JsonObjectRequest(Request.Method.GET, blogsUrl, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.wtf("onResponse",response.toString());
-                try {
-                    JSONArray items = response.getJSONArray("items");
-                    for (int i=0;i<items.length();i++){
-                        JsonParser parser = new JsonParser();
-                        JsonElement mJson =  parser.parse(items.get(i).toString());
-                        Gson gson = new Gson();
-                        Blog object = gson.fromJson(mJson, Blog.class);
-                        mBlogs.add(object);
-                    }
-                    mAdapter.notifyDataSetChanged();
-                    swipeRefreshLayout.setRefreshing(false);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                isLoading=false;
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                isLoading = false;
-                Log.wtf("onErrorResponse",error.toString());
-                swipeRefreshLayout.setRefreshing(false);
-                Utils.showErrorMessage(getContext(),error.toString());
-
-            }
-        });
-
-        SingleVolley.getInstance(getContext()).addToRequestQueue(request);
-    }
 
 
     @Override
@@ -263,7 +209,7 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-(App.COUNT_CARDS/2)) {
                     isLoading=true;
                     mFabUp.hide();
-                    updateBlogs(mBlogs.get(mBlogs.size() - 1).getId());
+                    updatePosts(post_id);
                 }
             }
         }
@@ -286,5 +232,10 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
                 mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
             }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
     }
 }
