@@ -27,7 +27,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
-import com.squareup.otto.Subscribe;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,9 +36,7 @@ import java.util.ArrayList;
 
 import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.Model.User;
-import pro.myburse.android.myburse.UI.AdapterBlogs;
 import pro.myburse.android.myburse.UI.AdapterPost;
-import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
 import pro.myburse.android.myburse.Utils.Utils;
 

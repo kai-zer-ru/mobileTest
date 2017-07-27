@@ -3,7 +3,8 @@
     android:id="@+id/cv"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
+    android:layout_marginTop="@dimen/cardview_default_elevation"
+    android:layout_marginBottom="@dimen/cardview_default_elevation"
     >
 
     <RelativeLayout
@@ -78,12 +79,21 @@
             android:text="Preview"
             android:textColor="@color/material_drawer_primary_text"
             />
+
+        <View
+            android:id="@+id/div"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/shop_preview"
+            android:layout_marginTop="@dimen/material_drawer_item_padding"
+            android:background="@color/colorCardSeparator"
+            />
         <me.zhanghai.android.materialratingbar.MaterialRatingBar
             android:id="@+id/shop_rating"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_below="@+id/shop_preview"
+            android:layout_below="@+id/div"
             android:layout_alignParentLeft="true"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             style="@style/Widget.MaterialRatingBar.RatingBar.Small"/>
@@ -93,7 +103,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_below="@+id/shop_preview"
+            android:layout_below="@+id/div"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:textSize="16sp"
             android:text="{faw-comment}100 {faw-heart}100"

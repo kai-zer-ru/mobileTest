@@ -58,8 +58,7 @@ import android.view.MenuItem;
             switch (item.getItemId()) {
                 case android.R.id.home:
                     onBackPressed();
-                    //getSupportFragmentManager().popBackStack();
-                    //return true;
+                    break;
             }
             return super.onOptionsItemSelected(item);
         }

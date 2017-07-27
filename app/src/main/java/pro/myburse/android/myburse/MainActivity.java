@@ -9,14 +9,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
@@ -35,7 +35,7 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 import com.squareup.picasso.Picasso;
 
-import java.util.List;
+import java.lang.ref.WeakReference;
 
 import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.Utils.Firebase.Config;
@@ -44,6 +44,7 @@ import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
+    private static WeakReference<MainActivity> wrActivity = null;
 
     private Drawer mDrawer;
     private AccountHeader mAccountHeader;
@@ -54,10 +55,11 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        wrActivity = new WeakReference<>(this);
+
         setContentView(R.layout.activity_main);
 // FIREBASE RECEIVER
 
@@ -83,6 +85,14 @@ public class MainActivity extends AppCompatActivity {
 //
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                checkNavigationIcon();
+            }
+        });
+
         mApp = (App) getApplication();
         Otto = mApp.getOtto();
         Otto.register(this);
@@ -131,18 +141,13 @@ public class MainActivity extends AppCompatActivity {
 
                 })
                 .build();
-
-        mDrawer = new DrawerBuilder()
-                .withActivity(this)
-                .build();
-
-
         mDrawer = new DrawerBuilder()
                 .withAccountHeader(mAccountHeader)
                 .withToolbar(toolbar)
                 .withActionBarDrawerToggle(true)
-                .withActionBarDrawerToggleAnimated(true)
+                .withActionBarDrawerToggleAnimated(false)
                 .withActivity(this)
+                .withDrawerGravity(Gravity.LEFT)
                 .build();
 
         PrimaryDrawerItem primaryDrawerItem = new PrimaryDrawerItem()
@@ -205,9 +210,35 @@ public class MainActivity extends AppCompatActivity {
 
         mUser = mApp.getUser();
         if (mUser!=null&&mUser.isConnected()&&
-                mUser.getDeviceId().equals(mApp.getDeviceId())&&
-                savedInstanceState==null){
-            updateProfile();
+                mUser.getDeviceId().equals(mApp.getDeviceId())){
+            updateProfile(savedInstanceState==null);
+        }
+
+        checkNavigationIcon();
+
+    }
+
+    private void checkNavigationIcon(){
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            mDrawer.getActionBarDrawerToggle().setDrawerIndicatorEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            mDrawer.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onBackPressed();
+                }
+            });
+        } else {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            mDrawer.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            mDrawer.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mDrawer.openDrawer();
+                }
+            });
         }
     }
 
@@ -215,20 +246,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         NotificationUtils.clearNotifications(getApplicationContext());
-/*
+
         FragmentManager fragmentManager = getSupportFragmentManager();
-        if (fragmentManager.) {
+        if (fragmentManager.findFragmentById(R.id.fragment_container)==null) {
             getNews();
-        }*/
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-
+        Otto.unregister(this);
     }
-
 
     private void getNews(){
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -295,6 +325,7 @@ public class MainActivity extends AppCompatActivity {
                 fragment = FragmentProfile.getInstance();
                 fragmentManager
                         .beginTransaction()
+                        .setCustomAnimations(R.anim.enter_from_right,R.anim.exit_to_left,R.anim.enter_from_left,R.anim.exit_to_right)
                         .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
                         .addToBackStack(fragment.getClass().getSimpleName())
                         .commit();
@@ -323,29 +354,36 @@ public class MainActivity extends AppCompatActivity {
         try {
             switch (msg.getAction()) {
                 case "updateProfile": {
-                    updateProfile();
+                    updateProfile(true);
                     Otto.post(new OttoMessage("getNews",null));
                     Otto.post(new OttoMessage("getShops",null));
+                    break;
                 }
                 case "getPost":{
-                    FragmentManager fragmentManager = getSupportFragmentManager();
-                    Fragment   fragment = FragmentPost.getInstance((long)msg.getData());
-                    fragmentManager
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
-                        .addToBackStack(fragment.getClass().getSimpleName())
-                        .commit();
+                    AppCompatActivity mainActivity =wrActivity.get();
+                    if (mainActivity!=null&&!mainActivity.isFinishing()) {
+                        FragmentManager fragmentManager = mainActivity.getSupportFragmentManager();
+                        Fragment fragment = FragmentPost.getInstance((long) msg.getData());
+                        fragmentManager
+                                .beginTransaction()
+                                .setCustomAnimations(R.anim.enter_from_right,R.anim.exit_to_left,R.anim.enter_from_left,R.anim.exit_to_right)
+                                .replace(R.id.fragment_container, fragment, fragment.getClass().getSimpleName())
+                                .addToBackStack(fragment.getClass().getSimpleName())
+                                .commitAllowingStateLoss();
+                    }
+                    break;
                 }
                 default: {
 
                 }
             }
         }catch (Exception e){
+            e.printStackTrace();
             Utils.showErrorMessage(this, e.getMessage());
         }
     }
 
-    private void updateProfile(){
+    private void updateProfile(boolean openDrawer){
         mUser = mApp.getUser();
         final IProfile profile = new ProfileDrawerItem()
                 .withEmail(mUser.getEmail())
@@ -359,7 +397,9 @@ public class MainActivity extends AppCompatActivity {
         mAccountHeader.removeProfile(0);
         mAccountHeader.addProfile(profile,0);
         mAccountHeader.setActiveProfile(0);
-        mDrawer.openDrawer();
+        if (openDrawer){
+            mDrawer.openDrawer();
+        }
     }
 
     private boolean isUserConnected(){

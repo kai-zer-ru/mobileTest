@@ -88,8 +88,10 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
         }else {
             holder.mPreview.setText(Html.fromHtml(mBlog.getText()));
         }
-        holder.mRating.setNumStars(5);
-        holder.mRating.setRating(mBlog.getRating());
+      //  holder.mRating.setNumStars(5);
+      //  holder.mRating.setRating(mBlog.getRating());
+        holder.mRating.setVisibility(View.GONE);
+
         holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mBlog.getCommentsCount(),mBlog.getLikesCount()));
 
         holder.cv.setOnClickListener(new View.OnClickListener() {

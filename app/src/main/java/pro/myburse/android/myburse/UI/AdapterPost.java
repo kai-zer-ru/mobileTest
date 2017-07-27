@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -78,8 +77,9 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.BlogViewHolder
         }else {
             holder.mPreview.setText(Html.fromHtml(mBlog.getText()));
         }
-        holder.mRating.setNumStars(5);
-        holder.mRating.setRating(mBlog.getRating());
+  //      holder.mRating.setNumStars(5);
+  //      holder.mRating.setRating(mBlog.getRating());
+        holder.mRating.setVisibility(View.GONE);
         holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mBlog.getCommentsCount(),mBlog.getLikesCount()));
 
     }

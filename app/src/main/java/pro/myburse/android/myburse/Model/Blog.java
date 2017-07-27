@@ -20,7 +20,6 @@ public class Blog {
     private String owner_url;
     private String owner_avatar;
     private boolean is_my_post;
-    private float rating;
     private int comments_count;
     private int likes_count;
 
@@ -173,11 +172,4 @@ public class Blog {
         this.is_my_post = is_my_post;
     }
 
-    public float getRating() {
-        return rating;
-    }
-
-    public void setRating(float rating) {
-        this.rating = rating;
-    }
 }
