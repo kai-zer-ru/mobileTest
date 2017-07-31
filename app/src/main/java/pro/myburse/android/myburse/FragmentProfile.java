@@ -34,28 +34,36 @@ import pro.myburse.android.myburse.Utils.SingleVolley;
 import pro.myburse.android.myburse.Utils.Utils;
 
 public class FragmentProfile extends Fragment {
-
+    private final static String ARG_USER_ID = "user_id";
     private TextInputEditText tvId, tvFirstName, tvLastName, tvSocialNetworkId, tvSocialNetworkName,
      tvExtId,tvDeviceId,tvPhone, tvEmail, tvBirthday, tvPassword;
     private ImageView ivImage;
     private Bus Otto;
     private App mApp;
+    private long mUserId;
     private User mUser;
 
     public FragmentProfile() {
     }
 
-    public static FragmentProfile getInstance(){
-        return new FragmentProfile();
+    public static FragmentProfile getInstance(long user_id){
+        Fragment fragment = new FragmentProfile();
+        Bundle args = new Bundle();
+        args.putLong(ARG_USER_ID, user_id);
+        fragment.setArguments(args);
+        return (FragmentProfile) fragment;
     }
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // mUserId == 0 - текущий юзер, иначе другой
+        if (getArguments()!=null){
+            mUserId = getArguments().getLong(ARG_USER_ID);
+        }
         mApp = (App) getActivity().getApplication();
         Otto = mApp.getOtto();
-        mUser = mApp.getUser();
     }
 
     @Override

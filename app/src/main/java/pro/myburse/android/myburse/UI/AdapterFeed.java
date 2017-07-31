@@ -15,37 +15,46 @@ import android.widget.TextView;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.mikepenz.iconics.view.IconicsTextView;
+import com.squareup.otto.Bus;
 
 import java.util.ArrayList;
 
 import me.zhanghai.android.materialratingbar.MaterialRatingBar;
-import pro.myburse.android.myburse.Model.Blog;
+import pro.myburse.android.myburse.App;
+import pro.myburse.android.myburse.Model.Feed;
 import pro.myburse.android.myburse.R;
+import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
 
 
-public class AdapterPost extends RecyclerView.Adapter<AdapterPost.BlogViewHolder> {
-    ArrayList<Blog> mBlogs;
-    Context mContext;
 
-    public AdapterPost(ArrayList<Blog> blogs){
+public class AdapterFeed extends RecyclerView.Adapter<AdapterFeed.FeedViewHolder> {
+    ArrayList<Feed> mFeed;
+    Context mContext;
+    App mApp;
+    Bus Otto;
+
+    public AdapterFeed(ArrayList<Feed> news, App app){
         super();
-        this.mBlogs=blogs;
+        this.mFeed =news;
+        mApp = app;
+        Otto = mApp.getOtto();
+
     }
 
     @Override
-    public BlogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public FeedViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
         View view = LayoutInflater.from(mContext).inflate(R.layout.card, parent, false);
-        return new BlogViewHolder(view);
+        return new FeedViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(final BlogViewHolder holder, final int position) {
-        final Blog mBlog = mBlogs.get(position);
+    public void onBindViewHolder(final FeedViewHolder holder, int position) {
+        final Feed mNew = mFeed.get(position);
         ImageLoader imageLoader = SingleVolley.getInstance(mContext).getImageLoader();
 
-        imageLoader.get(mBlog.getOwner().getAvatarUrl(), new ImageLoader.ImageListener() {
+        imageLoader.get(mNew.getOwner().getAvatarUrl(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mOwnerImage.setImageBitmap(response.getBitmap());
@@ -56,14 +65,13 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.BlogViewHolder
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-        holder.mOwnerName.setText(mBlog.getOwner().getName());
-        holder.mItemType.setVisibility(View.GONE);
+        holder.mOwnerName.setText(mNew.getOwner().getName());
+        holder.mItemType.setText(mNew.getItemType());
+        holder.mCreatedAt.setText(mNew.getCreatedAtFormated());
+        holder.mUpdatedAt.setText(mNew.getUpdatedAtFormated());
+        holder.mTitle.setText(mNew.getTitle());
 
-        holder.mCreated.setText(mBlog.getCreatedAtFormated());
-        holder.mUpdated.setText(mBlog.getUpdatedAtFormated());
-        holder.mTitle.setText(mBlog.getTitle());
-
-        imageLoader.get(mBlog.getImage().getUrl(), new ImageLoader.ImageListener() {
+      imageLoader.get(mNew.getImage().getUrl(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mImage.setImageBitmap(response.getBitmap());
@@ -74,54 +82,69 @@ public class AdapterPost extends RecyclerView.Adapter<AdapterPost.BlogViewHolder
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
+        //Picasso.with(holder.mImage.getContext()).load(mNew.getImage()).placeholder(android.R.drawable.progress_horizontal).into(holder.mImage);
         //holder.mText.setText(mNew.getText());
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N) {
-            holder.mText.setText(Html.fromHtml(mBlog.getText(), Html.FROM_HTML_MODE_COMPACT));
+            holder.mPreview.setText(Html.fromHtml(mNew.getText(), Html.FROM_HTML_MODE_COMPACT));
         }else {
-            holder.mText.setText(Html.fromHtml(mBlog.getText()));
+            holder.mPreview.setText(Html.fromHtml(mNew.getText()));
         }
-  //      holder.mRating.setNumStars(5);
-  //      holder.mRating.setRating(mBlog.getRating());
+        holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mNew.getCommentsCount(),mNew.getLikesCount()));
         holder.mRating.setVisibility(View.GONE);
-        holder.mCounters.setText(String.format("{faw-comment} %d {faw-heart} %d",mBlog.getCommentsCount(),mBlog.getLikesCount()));
 
+        holder.cv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switch (mNew.getItemType()){
+                    case Feed.TYPE_BLOG:  {
+                        Otto.post(new OttoMessage("getPost", mNew.getId()));
+                        break;
+                    }
+                    case Feed.TYPE_PRODUCT: {
+                        break;
+                    }
+                    case Feed.TYPE_WALL:  {
+                        break;
+                    }
+
+                }
+            }
+        });
     }
 
 
     @Override
     public int getItemCount() {
-        return mBlogs.size();
+        return mFeed.size();
     }
 
-    static class BlogViewHolder extends RecyclerView.ViewHolder{
+    static class FeedViewHolder extends RecyclerView.ViewHolder{
 
         CardView cv;
         ImageView mOwnerImage;
         TextView mOwnerName;
         TextView mItemType;
-        TextView mCreated;
-        TextView mUpdated;
+        TextView mCreatedAt;
+        TextView mUpdatedAt;
         TextView mTitle;
         ImageView mImage;
-        TextView mText;
-        MaterialRatingBar mRating;
+        TextView mPreview;
         IconicsTextView mCounters;
+        MaterialRatingBar mRating;
 
-
-        private BlogViewHolder(View itemView) {
+        private FeedViewHolder(View itemView) {
             super(itemView);
             cv =  itemView.findViewById(R.id.cv);
             mOwnerImage = cv.findViewById(R.id.owner_avatar);
             mOwnerName = cv.findViewById(R.id.owner_name);
             mItemType = cv.findViewById(R.id.item_type);
-            mCreated = cv.findViewById(R.id.created);
-            mUpdated = cv.findViewById(R.id.updated);
+            mCreatedAt = cv.findViewById(R.id.created);
+            mUpdatedAt = cv.findViewById(R.id.updated);
             mTitle = cv.findViewById(R.id.title);
             mImage = cv.findViewById(R.id.image);
-            mText = cv.findViewById(R.id.text);
-            mRating = cv.findViewById(R.id.rating);
+            mPreview = cv.findViewById(R.id.text);
             mCounters = cv.findViewById(R.id.counters);
-
+            mRating = cv.findViewById(R.id.rating);
         }
 
     }

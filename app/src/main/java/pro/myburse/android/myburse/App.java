@@ -15,8 +15,8 @@ public class App extends Application {
     public final static int SOCIAL_ID_VK = 1;
     public final static int SOCIAL_ID_OK = 2;
     public final static int SOCIAL_ID_FB = 3;
-    public final static String URL_BASE = "https://api.myburse.pro/";
-    //public final static String URL_BASE = "https://api-test.myburse.pro/";
+    //public final static String URL_BASE = "https://api.myburse.pro/";
+    public final static String URL_BASE = "https://api-test.myburse.pro/";
     public final static int COUNT_CARDS=20;
     private static Bus Otto;
     private User mUser;

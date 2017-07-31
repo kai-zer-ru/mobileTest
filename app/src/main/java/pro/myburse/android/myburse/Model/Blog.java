@@ -1,28 +1,25 @@
 package pro.myburse.android.myburse.Model;
 
 
+import java.util.Date;
 
 public class Blog {
 
     private long id;
+    private Owner owner;
     private String url;
     private String title;
     private String text;
-    private String date_add;
-    private String image;
-    private int image_width;
-    private int image_height;
-    private double latitude;
-    private double longitude;
-    private double distance;
-    private double owner_id;
-    private String owner_name;
-    private String owner_url;
-    private String owner_avatar;
-    private boolean is_my_post;
+    private Date created_at;
+    private Date updated_at;
+    private String updated_at_formated;
+    private String created_at_formated;
+    private Image image;
+    private boolean is_mine;
+    private boolean is_subscribed;
     private int comments_count;
     private int likes_count;
-
+    private int reposts_count;
 
     public Blog(){
 
@@ -34,6 +31,22 @@ public class Blog {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getTitle() {
@@ -52,101 +65,6 @@ public class Blog {
         this.text = text;
     }
 
-    public String getDateAdd() {
-        return date_add;
-    }
-
-    public void setDateAdd(String date_add) {
-        this.date_add = date_add;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
-    }
-
-    public int getImageWidth() {
-        return image_width;
-    }
-
-    public void setImageWidth(int image_width) {
-        this.image_width = image_width;
-    }
-
-    public int getImageHeight() {
-        return image_height;
-    }
-
-    public void setImageHeight(int image_height) {
-        this.image_height = image_height;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
-    public double getOwnerId() {
-        return owner_id;
-    }
-
-    public void setOwnerId(double owner_id) {
-        this.owner_id = owner_id;
-    }
-
-    public String getOwnerName() {
-        return owner_name;
-    }
-
-    public void setOwnerName(String owner_name) {
-        this.owner_name = owner_name;
-    }
-
-    public String getOwnerUrl() {
-        return owner_url;
-    }
-
-    public void setOwnerUrl(String owner_url) {
-        this.owner_url = owner_url;
-    }
-
-    public String getOwnerAvatar() {
-        return owner_avatar;
-    }
-
-    public void setOwnerAvatar(String owner_avatar) {
-        this.owner_avatar = owner_avatar;
-    }
-
-    public double getDistance() {
-        return distance;
-    }
-
-    public void setDistance(double distance) {
-        this.distance = distance;
-    }
 
     public int getCommentsCount() {
         return comments_count;
@@ -164,12 +82,67 @@ public class Blog {
         this.likes_count = likes_count;
     }
 
-    public boolean isMyPost() {
-        return is_my_post;
+    public int getRepostsCount() {
+        return reposts_count;
     }
 
-    public void setIsMyPost(boolean is_my_post) {
-        this.is_my_post = is_my_post;
+    public void setRepostsCount(int reposts_count) {
+        this.reposts_count = reposts_count;
     }
 
+    public Image getImage() {
+        return image;
+    }
+
+    public void setImage(Image image) {
+        this.image = image;
+    }
+
+    public Date getCreatedAt() {
+        return created_at;
+    }
+
+    public void setCreatedAt(Date created_at) {
+        this.created_at = created_at;
+    }
+
+    public Date getUpdatedAt() {
+        return updated_at;
+    }
+
+    public void setUpdatedAt(Date updated_at) {
+        this.updated_at = updated_at;
+    }
+
+    public String getUpdatedAtFormated() {
+        return updated_at_formated;
+    }
+
+    public void setUpdatedAtFormated(String updated_at_formated) {
+        this.updated_at_formated = updated_at_formated;
+    }
+
+    public String getCreatedAtFormated() {
+        return created_at_formated;
+    }
+
+    public void setCreatedAtFormated(String created_at_formatted) {
+        this.created_at_formated = created_at_formatted;
+    }
+
+    public boolean isMine() {
+        return is_mine;
+    }
+
+    public void isMine(boolean is_mine) {
+        this.is_mine = is_mine;
+    }
+
+    public boolean isSubscribed() {
+        return is_subscribed;
+    }
+
+    public void isSubscribed(boolean is_subscribed) {
+        this.is_subscribed = is_subscribed;
+    }
 }

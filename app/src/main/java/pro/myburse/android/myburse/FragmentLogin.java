@@ -30,6 +30,9 @@ import com.github.gorbin.asne.odnoklassniki.OkPerson;
 import com.github.gorbin.asne.odnoklassniki.OkSocialNetwork;
 import com.github.gorbin.asne.vk.VKPerson;
 import com.github.gorbin.asne.vk.VkSocialNetwork;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
 import com.vk.sdk.api.VKApi;
 import com.vk.sdk.api.VKApiConst;
@@ -39,6 +42,7 @@ import com.vk.sdk.api.VKResponse;
 import com.vk.sdk.api.model.VKApiUserFull;
 import com.vk.sdk.api.model.VKList;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -48,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.Model.User;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
@@ -219,7 +224,7 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
         }
         User user = mApp.getUser();
 
-        if(user.getSocialNetworkId() ==0 && user.getId()!=null&&!user.getId().isEmpty()){
+        if(user.getSocialNetworkId() ==0 && user.getId()!=0){
             btnMyBurse.setText("Вход MyBurse");
         }
     }
@@ -227,8 +232,7 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
     @Override
     public void onSocialNetworkManagerInitialized() {
         for (SocialNetwork socialNetwork : mSocialNetworkManager.getInitializedSocialNetworks()) {
-            AccessToken at = socialNetwork.getAccessToken();
-            Log.wtf("DEBUD TOKEN",at.toString());
+            //AccessToken at = socialNetwork.getAccessToken();
             socialNetwork.setOnLoginCompleteListener(this);
             initSocialNetwork(socialNetwork);
         }
@@ -357,7 +361,6 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
         Utils.showErrorMessage(getContext(),errorMessage);
     }
 
-
     public void fbRequestDetailedSocialPerson(String userId) {
         final Session currentSession = Session.getActiveSession();
 
@@ -401,56 +404,61 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
 
     private void registerSocialNetwork(final User user){
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","socialCallBack");
+        builder.appendQueryParameter("method","social_callback");
         builder.appendQueryParameter("social_type", String.valueOf(user.getSocialNetworkId()));
         builder.appendQueryParameter("device_id", user.getDeviceId());
         builder.appendQueryParameter("social_user_id", user.getExtId());
-        builder.appendQueryParameter("firstname", user.getFirstName());
-        builder.appendQueryParameter("middlename", user.getMiddleName());
-        builder.appendQueryParameter("lastname", user.getLastName());
-        builder.appendQueryParameter("avatar", (user.getUrlImage_50()==null)?user.getUrlImage():user.getUrlImage_50());
+        builder.appendQueryParameter("first_name", user.getFirstName());
+        builder.appendQueryParameter("middle_name", user.getMiddleName());
+        builder.appendQueryParameter("last_name", user.getLastName());
         builder.appendQueryParameter("birthday", user.getBirthday());
         builder.appendQueryParameter("email", (user.getEmail()==null)?"":user.getEmail());
+        builder.appendQueryParameter("avatar_url", (user.getUrlImage_50()==null)?user.getUrlImage():user.getUrlImage_50());
         String registerUrl=builder.build().toString();
 
         com.android.volley.Request request = new JsonObjectRequest(com.android.volley.Request.Method.GET, registerUrl, new com.android.volley.Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
+                Log.wtf("social_callback onResponse",response.toString());
+                LoginActivity.hideProgress();
                 try {
-                    if (response.getInt("error") == 0) {
-                        Log.wtf("registerSocialNetwork", response.toString());
-                        try {
-                            user.setId(response.getString("user_id"));
-                            user.setEmail(response.getString("email"));
-                            user.setPhone(response.getString("phone_number"));
-                            user.setAccessKey(response.getString("access_key"));
-                            user.setBalanceBids(response.getInt("balance_bids"));
-                            user.setBalanceBonus(response.getInt("balance_bonus"));
-                            user.setBalanceMoney(response.getInt("balance_money"));
-                            user.setUrlImage_50(response.getString("avatar"));
+                    int error = response.getInt("error");
+                    if (error==0){
+                        JSONObject _response = response.getJSONObject("response");
+                        int _count = _response.getInt("count");
+                        if (_count>0){
+                            JSONArray _items = _response.getJSONArray("items");
+                            JSONObject _user = (JSONObject) _items.get(0);
+
+                            user.setId(_user.getInt("user_id"));
+                            user.setEmail(_user.getString("email"));
+                            user.setPhone(_user.getString("phone"));
+                            user.setAccessKey(_user.getString("access_key"));
+                            user.setBalanceBids(_user.getInt("balance_bids"));
+                            user.setBalanceBonus(_user.getInt("balance_bonus"));
+                            user.setBalanceMoney(_user.getInt("balance_money"));
+                            user.setUrlImage_50(_user.getString("avatar"));
                             mApp.setUser(user);
-                            LoginActivity.hideProgress();
                             Otto.post(new OttoMessage("updateProfile", null));
                             getActivity().onBackPressed();
-                        } catch (JSONException e) {
-                            Utils.showErrorMessage(getContext(),"Ошибка: "+e.toString());
-                            e.printStackTrace();
+
+                        } else {
+                            // нет юзера, нет ошибки..)
+                            Utils.showErrorMessage(getContext(),"social_callback: "+response.toString());
                         }
                     } else {
-                        LoginActivity.hideProgress();
-                        Utils.showErrorMessage(getContext(),"Ошибка: "+response.getInt("error")+response.getString("error_text"));
+                        Utils.showErrorMessage(getContext(),"social_callback "+error+"\n"+response.getString("error_text"));
                     }
                 } catch (JSONException e) {
-                    LoginActivity.hideProgress();
+                    Utils.showErrorMessage(getContext(),"social_callback JSONException "+e.toString());
                     e.printStackTrace();
-                    Utils.showErrorMessage(getContext(),"Ошибка разбора: "+e.getMessage());
                 }
             }
         }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 LoginActivity.hideProgress();
-                Log.wtf("onErrorResponse",error.toString());
+                Log.wtf("social_callback onErrorResponse",error.toString());
                 Utils.showErrorMessage(getContext(),error.toString());
 
             }

@@ -34,6 +34,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.squareup.otto.Bus;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -112,7 +113,7 @@ public class FragmentRegister extends Fragment {
 
                 if (Patterns.PHONE.matcher(mPhone).matches()){
                     Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-                    builder.appendQueryParameter("method","sendConfirmSms");
+                    builder.appendQueryParameter("method","send_confirm_sms");
                     builder.appendQueryParameter("phone",mPhone.replace(" ","").replace("(","").replace(")","").replace("-",""));
                     builder.appendQueryParameter("device_id",mApp.getDeviceId());
 
@@ -121,25 +122,31 @@ public class FragmentRegister extends Fragment {
                     Request request = new JsonObjectRequest(Request.Method.GET, smsUrl, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
-                            Log.wtf("onResponse",response.toString());
+                            Log.wtf("send_confirm_sms onResponse",response.toString());
+                            btnSMS.setEnabled(true);
                             try {
                                 int error = response.getInt("error");
                                 if (error==0){
                                     Toast.makeText(getContext(), "Запрос СМС подтверждения отправлен", Toast.LENGTH_SHORT).show();
+                                    JSONObject _response = response.getJSONObject("response");
+                                    int _count = _response.getInt("count");
+                                    if (_count>0) {
+                                        JSONArray _items = _response.getJSONArray("items");
+                                        JSONObject _user = (JSONObject) _items.get(0);
+
+                                    }
                                 } else {
-                                    Utils.showErrorMessage(getContext(), response.getString("error_text"));
-                                    btnSMS.setEnabled(true);
+                                    Utils.showErrorMessage(getContext(), "send_confirm_sms "+error+" : "+response.getString("error_text"));
                                 }
                             } catch (JSONException e) {
-                                btnSMS.setEnabled(true);
+                                Utils.showErrorMessage(getContext(), "send_confirm_sms JSONException "+e.toString());
                                 e.printStackTrace();
                             }
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            Utils.showErrorMessage(getContext(),error.toString());
-                            btnSMS.setEnabled(true);
+                            Utils.showErrorMessage(getContext(),"send_confirm_sms onErrorResponse "+error.toString());
                         }
                     });
 
@@ -202,21 +209,22 @@ public class FragmentRegister extends Fragment {
         editSMS.setText(sms);
         btnConfirm.setEnabled(false);
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","confirmPhone");
-        builder.appendQueryParameter("phone_hash",sms);
+        builder.appendQueryParameter("method","confirm_code");
+        builder.appendQueryParameter("code",sms);
         builder.appendQueryParameter("device_id",mApp.getDeviceId());
+        //builder.appendQueryParameter("user_id",mApp.getDeviceId());
 
         String phoneUrl=builder.build().toString();
 
         final Request request = new JsonObjectRequest(Request.Method.GET, phoneUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Log.wtf("onResponse",response.toString());
+                Log.wtf("confirm_code onResponse",response.toString());
                 final User mUser = new User();
                 mUser.setDeviceId(mApp.getDeviceId());
                 mUser.setPhone(mPhone);
                 try {
-                    mUser.setId(response.getString("user_id"));
+                    mUser.setId(response.getInt("user_id"));
                 } catch (JSONException e) {
                     Utils.showErrorMessage(getContext(),e.toString());
                     e.printStackTrace();
@@ -234,17 +242,18 @@ public class FragmentRegister extends Fragment {
                                     .commit();
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Utils.showErrorMessage(getContext(), e.getMessage());
+                            Utils.showErrorMessage(getContext(),"confirm_code "+ e.getMessage());
                         }
                         Otto.post(new OttoMessage("updateProfile", null));
                     } else {
-                        Utils.showErrorMessage(getContext(), "Код ошибки: "+String.valueOf(error)+"\n"+response.getString("error_text"));
+                        Utils.showErrorMessage(getContext(), "confirm_code "+String.valueOf(error)+"\n"+response.getString("error_text"));
                         btnConfirm.setEnabled(true);
                         btnSMS.setEnabled(true);
 
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    Utils.showErrorMessage(getContext(),"confirm_code JSONException"+e.toString());
                     btnConfirm.setEnabled(true);
                     btnSMS.setEnabled(true);
                 }
@@ -252,7 +261,7 @@ public class FragmentRegister extends Fragment {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Utils.showErrorMessage(getContext(),error.toString());
+                Utils.showErrorMessage(getContext(),"confirm_code "+error.toString());
                 btnConfirm.setEnabled(true);
                 btnSMS.setEnabled(true);
             }

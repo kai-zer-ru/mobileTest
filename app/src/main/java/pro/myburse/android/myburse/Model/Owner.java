@@ -7,7 +7,7 @@ public class Owner {
     private int type; // 1 = юзер, 2 = магазин
     private String url;
     private String name;
-    private String avatar;
+    private String avatar_url;
 
     public Owner(){
 
@@ -45,12 +45,12 @@ public class Owner {
         this.name = name;
     }
 
-    public String getAvatar() {
-        return avatar;
+    public String getAvatarUrl() {
+        return avatar_url;
     }
 
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
+    public void setAvatarUrl(String avatar_url) {
+        this.avatar_url = avatar_url;
     }
 
     public boolean isUser(){

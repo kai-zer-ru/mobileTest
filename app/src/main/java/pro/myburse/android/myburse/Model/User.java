@@ -5,7 +5,7 @@ import java.util.Date;
 public class User {
 
     private static User userInstance = null;
-    private String id;
+    private int id;
     private int socialNetworkId;
     private String socialNetworkName;
     private String extId;
@@ -23,9 +23,9 @@ public class User {
     private String region_name;
     private String country_name;
     private String birthday;
-    private Integer balance_bids;
-    private Integer balance_bonus;
-    private Integer balance_money;
+    private int balance_bids;
+    private int balance_bonus;
+    private int balance_money;
     private String access_key;
 
 
@@ -40,11 +40,11 @@ public class User {
 
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -184,27 +184,27 @@ public class User {
         this.access_key = access_key;
     }
 
-    public Integer getBalanceBids() {
+    public int getBalanceBids() {
         return balance_bids;
     }
 
-    public void setBalanceBids(Integer balance_bids) {
+    public void setBalanceBids(int balance_bids) {
         this.balance_bids = balance_bids;
     }
 
-    public Integer getBalanceBonus() {
+    public int getBalanceBonus() {
         return balance_bonus;
     }
 
-    public void setBalanceBonus(Integer balance_bonus) {
+    public void setBalanceBonus(int balance_bonus) {
         this.balance_bonus = balance_bonus;
     }
 
-    public Integer getBalanceMoney() {
+    public int getBalanceMoney() {
         return balance_money;
     }
 
-    public void setBalanceMoney(Integer balance_money) {
+    public void setBalanceMoney(int balance_money) {
         this.balance_money = balance_money;
     }
 

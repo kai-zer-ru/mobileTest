@@ -1,10 +1,13 @@
 package pro.myburse.android.myburse.Model;
 
 
-import java.util.ArrayList;
 import java.util.Date;
 
-public class Shop {
+public class Feed {
+
+    public static final String TYPE_PRODUCT = "product";
+    public static final String TYPE_WALL = "wall";
+    public static final String TYPE_BLOG = "blog";
 
     private long id;
     private Owner owner;
@@ -17,19 +20,14 @@ public class Shop {
     private Image image;
     private String url;
     private double distance;
-    private double latitude;
-    private double longitude;
-    private boolean is_mine;
-    private boolean is_subscribed;
-    private float rating;
-    private int reviews_count;
-    private ArrayList<Product> products;
-    private ArrayList<Product> hot_products;
+    private String item_type;
+    private String product_type;
+    private int comments_count;
+    private int likes_count;
+    private int reposts_count;
 
 
-
-    public Shop(){
-
+    public Feed(){
     }
 
     public long getId() {
@@ -112,22 +110,6 @@ public class Shop {
         this.url = url;
     }
 
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
     public double getDistance() {
         return distance;
     }
@@ -136,51 +118,43 @@ public class Shop {
         this.distance = distance;
     }
 
-    public boolean isMine() {
-        return is_mine;
+    public String getItemType() {
+        return item_type;
     }
 
-    public void isMine(boolean is_mine) {
-        this.is_mine = is_mine;
+    public void setItemType(String item_type) {
+        this.item_type = item_type;
     }
 
-    public boolean isSubscribed() {
-        return is_subscribed;
+    public String getProductType() {
+        return product_type;
     }
 
-    public void isSubscribed(boolean is_subscribed) {
-        this.is_subscribed = is_subscribed;
+    public void setProductType(String product_type) {
+        this.product_type = product_type;
     }
 
-    public float getRating() {
-        return rating;
+    public int getCommentsCount() {
+        return comments_count;
     }
 
-    public void setRating(float rating) {
-        this.rating = rating;
+    public void setCommentsCount(int comments_count) {
+        this.comments_count = comments_count;
     }
 
-    public int getReviewsCount() {
-        return reviews_count;
+    public int getLikesCount() {
+        return likes_count;
     }
 
-    public void setReviewsCount(int reviews_count) {
-        this.reviews_count = reviews_count;
+    public void setLikesCount(int likes_count) {
+        this.likes_count = likes_count;
     }
 
-    public ArrayList<Product> getProducts() {
-        return products;
+    public int getRepostsCount() {
+        return reposts_count;
     }
 
-    public void setProducts(ArrayList<Product> products) {
-        this.products = products;
-    }
-
-    public ArrayList<Product> getHotProducts() {
-        return hot_products;
-    }
-
-    public void setHotProducts(ArrayList<Product> hot_products) {
-        this.hot_products = hot_products;
+    public void setRepostsCount(int reposts_count) {
+        this.reposts_count = reposts_count;
     }
 }

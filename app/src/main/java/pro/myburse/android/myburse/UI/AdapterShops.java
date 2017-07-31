@@ -19,9 +19,9 @@ import com.mikepenz.iconics.view.IconicsTextView;
 import java.util.ArrayList;
 
 import me.zhanghai.android.materialratingbar.MaterialRatingBar;
+import pro.myburse.android.myburse.Model.Shop;
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Model.Shop;
 
 
 
@@ -37,7 +37,7 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
     @Override
     public ShopViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
-        View view = LayoutInflater.from(mContext).inflate(R.layout.card_shop, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.card, parent, false);
         return new ShopViewHolder(view);
     }
 
@@ -47,7 +47,7 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
 
         ImageLoader imageLoader = SingleVolley.getInstance(mContext).getImageLoader();
 
-        imageLoader.get(mShop.getOwnerAvatar(), new ImageLoader.ImageListener() {
+        imageLoader.get(mShop.getOwner().getAvatarUrl(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mOwnerImage.setImageBitmap(response.getBitmap());
@@ -59,10 +59,12 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
             }
         });
 //        holder.mOwnerImage.setImageUrl(mShop.getOwnerAvatar(), SingleVolley.getInstance(mContext).getImageLoader());
-        holder.mOwnerName.setText(mShop.getOwnerName());
-        holder.mDateAdd.setText(mShop.getDateAdd());
+        holder.mOwnerName.setText(mShop.getOwner().getName());
+        holder.mItemType.setVisibility(View.GONE);
+        holder.mCreated.setText(mShop.getCreatedAtFormated());
+        holder.mUpdated.setText(mShop.getUpdatedAtFormated());
         holder.mTitle.setText(mShop.getTitle());
-        imageLoader.get(mShop.getImage(), new ImageLoader.ImageListener() {
+        imageLoader.get(mShop.getImage().getUrl(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mImage.setImageBitmap(response.getBitmap());
@@ -80,7 +82,6 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
         }
         holder.mRating.setNumStars(5);
         holder.mRating.setRating(mShop.getRating());
-        //holder.mRating
         holder.mCounters.setText(String.format("{faw-comment} %d ",mShop.getReviewsCount()));
     }
 
@@ -95,7 +96,9 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
         CardView cv;
         ImageView mOwnerImage;
         TextView mOwnerName;
-        TextView mDateAdd;
+        TextView mItemType;
+        TextView mCreated;
+        TextView mUpdated;
         TextView mTitle;
         ImageView mImage;
         TextView mPreview;
@@ -106,14 +109,16 @@ public class AdapterShops extends RecyclerView.Adapter<AdapterShops.ShopViewHold
         private ShopViewHolder(View itemView) {
             super(itemView);
             cv =  itemView.findViewById(R.id.cv);
-            mOwnerImage = cv.findViewById(R.id.shop_owner_img);
-            mOwnerName = cv.findViewById(R.id.shop_owner_name);
-            mDateAdd = cv.findViewById(R.id.shop_date_add);
-            mTitle = cv.findViewById(R.id.shop_title);
-            mImage = cv.findViewById(R.id.shop_img);
-            mPreview = cv.findViewById(R.id.shop_preview);
-            mRating = cv.findViewById(R.id.shop_rating);
-            mCounters = cv.findViewById(R.id.shop_counters);
+            mOwnerImage = cv.findViewById(R.id.owner_avatar);
+            mOwnerName = cv.findViewById(R.id.owner_name);
+            mItemType = cv.findViewById(R.id.item_type);
+            mCreated = cv.findViewById(R.id.created);
+            mUpdated = cv.findViewById(R.id.updated);
+            mTitle = cv.findViewById(R.id.title);
+            mImage = cv.findViewById(R.id.image);
+            mPreview = cv.findViewById(R.id.text);
+            mRating = cv.findViewById(R.id.rating);
+            mCounters = cv.findViewById(R.id.counters);
         }
 
     }

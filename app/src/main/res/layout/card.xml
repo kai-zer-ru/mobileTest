@@ -14,7 +14,7 @@
         android:padding="@dimen/material_drawer_item_padding">
 
         <ImageView
-            android:id="@+id/new_owner_img"
+            android:id="@+id/owner_avatar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -26,49 +26,62 @@
             />
 
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_owner_name"
+            android:id="@+id/owner_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/material_drawer_item_padding"
             android:layout_marginStart="@dimen/material_drawer_item_padding"
-            android:layout_toEndOf="@+id/new_owner_img"
-            android:layout_toRightOf="@+id/new_owner_img"
+            android:layout_toEndOf="@+id/owner_avatar"
+            android:layout_toRightOf="@+id/owner_avatar"
             android:text="Owner Name"
             android:textColor="@color/material_drawer_primary_text"
             />
 
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_item_type"
+            android:id="@+id/item_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/new_owner_name"
-            android:layout_alignStart="@+id/new_owner_name"
-            android:layout_below="@+id/new_owner_name"
+            android:layout_alignLeft="@+id/owner_name"
+            android:layout_alignStart="@+id/owner_name"
+            android:layout_below="@+id/owner_name"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:text="Item Type"
-            android:textColor="@color/material_drawer_primary_text"
+            android:textColor="@color/material_drawer_secondary_text"
             />
 
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_date_add"
+            android:id="@+id/created"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:text="10.10.2017"
+            android:text="добавлено 10.10.2017"
             android:textColor="@color/material_drawer_primary_text"
             android:layout_alignParentTop="true" />
+
+
+        <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/updated"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="@dimen/material_drawer_item_padding"
+            android:text="изменено час назад"
+            android:textColor="@color/material_drawer_secondary_text"
+            android:layout_below="@+id/created" />
+
         <View
             android:id="@+id/div1"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_below="@+id/new_item_type"
+            android:layout_below="@+id/updated"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:background="@color/colorCardSeparator"
             />
 
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_title"
+            android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
@@ -79,35 +92,45 @@
             android:layout_below="@+id/div1" />
 
         <ImageView
-            android:id="@+id/new_img"
+            android:id="@+id/image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/new_title"
+            android:layout_below="@+id/title"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:adjustViewBounds="true"
             />
         <android.support.v7.widget.AppCompatTextView
-            android:id="@+id/new_preview"
+            android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/new_img"
+            android:layout_below="@+id/image"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
-            android:text="Preview"
+            android:text="Text"
             android:textColor="@color/material_drawer_primary_text"
             />
         <View
             android:id="@+id/div2"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_below="@+id/new_preview"
+            android:layout_below="@+id/text"
             android:layout_marginTop="@dimen/material_drawer_item_padding"
             android:background="@color/colorCardSeparator"
             />
+
+        <me.zhanghai.android.materialratingbar.MaterialRatingBar
+            android:id="@+id/rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/div2"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="@dimen/material_drawer_item_padding"
+            style="@style/Widget.MaterialRatingBar.RatingBar.Small"/>
         <com.mikepenz.iconics.view.IconicsTextView
-            android:id="@+id/ic_counters"
+            android:id="@+id/counters"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"

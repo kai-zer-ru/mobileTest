@@ -322,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
             FragmentManager fragmentManager = getSupportFragmentManager();
             Fragment fragment = fragmentManager.findFragmentByTag(FragmentProfile.class.getSimpleName());
             if (fragment == null) {
-                fragment = FragmentProfile.getInstance();
+                fragment = FragmentProfile.getInstance(0); // профиль текущего юзера
                 fragmentManager
                         .beginTransaction()
                         .setCustomAnimations(R.anim.enter_from_right,R.anim.exit_to_left,R.anim.enter_from_left,R.anim.exit_to_right)

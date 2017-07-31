@@ -33,37 +33,46 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
+import pro.myburse.android.myburse.Model.Feed;
 import pro.myburse.android.myburse.Model.User;
-import pro.myburse.android.myburse.UI.AdapterNews;
+import pro.myburse.android.myburse.UI.AdapterFeed;
 import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Model.New;
 import pro.myburse.android.myburse.Utils.Utils;
 
 
 
 public class FragmentNews extends Fragment implements ObservableScrollViewCallbacks{
 
+    private final int PERMISSION_REQUEST_ACCESS_LOCATION = 0;
+
     private App mApp;
     private Bus Otto;
-    private ArrayList<New> mNews;
+    private ArrayList<Feed> mFeed;
     private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton mFabUp;
     private ObservableRecyclerView mRV;
-    private AdapterNews mAdapter;
+    private AdapterFeed mAdapter;
     private FusedLocationProviderClient mFusedLocationClient;
-    private final int PERMISSION_REQUEST_ACCESS_LOCATION = 0;
     private  LinearLayoutManager linearLayoutManager;
     private Location mCurrentLocation;
     private boolean isLoading = false;
@@ -71,7 +80,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
 
 
     public FragmentNews(){
-       mNews = new ArrayList<>();
+       mFeed = new ArrayList<>();
     }
 
     public static FragmentNews getInstance(){
@@ -97,7 +106,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         linearLayoutManager= new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRV.setLayoutManager(linearLayoutManager);
-        mAdapter = new AdapterNews(mNews);
+        mAdapter = new AdapterFeed(mFeed, mApp);
         mRV.setAdapter(mAdapter);
         mRV.setScrollViewCallbacks(this);
 
@@ -105,7 +114,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mNews.clear();
+                mFeed.clear();
                 mAdapter.notifyDataSetChanged();
                 getCurrentLocation();
             }
@@ -134,7 +143,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                         PERMISSION_REQUEST_ACCESS_LOCATION);
             } else {
                 swipeRefreshLayout.setRefreshing(true);
-                mNews.clear();
+                mFeed.clear();
                 mAdapter.notifyDataSetChanged();
                 getCurrentLocation();
             }
@@ -151,7 +160,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                     swipeRefreshLayout.setRefreshing(true);
                     getCurrentLocation();
                 } else {
-                    updateNews(null);
+                    updateNews(null,0);
                 }
                 return;
             }
@@ -163,7 +172,7 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         switch (msg.getAction()){
             case "getNews":{
                 swipeRefreshLayout.setRefreshing(true);
-                mNews.clear();
+                mFeed.clear();
                 mAdapter.notifyDataSetChanged();
                 getCurrentLocation();
             }
@@ -179,19 +188,23 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         Otto.unregister(this);
     }
 
-    private void updateNews(final Location location){
+    private void updateNews(final Location location, long previous_id){
         mCurrentLocation=location;
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
 
-        builder.appendQueryParameter("method","getNews");
+
+        builder.appendQueryParameter("method","get_feed");
+        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
         if (location != null) {
-            builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
-            builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
+            builder.appendQueryParameter("filters[longitude]", String.valueOf(location.getLongitude()));
+            builder.appendQueryParameter("filters[latitude]", String.valueOf(location.getLatitude()));
+        }
+        if (0!= previous_id){
+            builder.appendQueryParameter("last_id", String.valueOf(previous_id));
         }
         User user = mApp.getUser();
         if (user.isConnected()){
-            builder.appendQueryParameter("user_id",user.getId());
+            builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
             builder.appendQueryParameter("device_id",user.getDeviceId());
             builder.appendQueryParameter("access_key",user.getAccessKey());
         }
@@ -200,87 +213,59 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         Request request = new JsonObjectRequest(Request.Method.GET, newsUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Log.wtf("onResponse",response.toString());
-                try {
-                    JSONArray items = response.getJSONArray("items");
-                    for (int i=0;i<items.length();i++){
-                        JsonParser parser = new JsonParser();
-                        JsonElement mJson =  parser.parse(items.get(i).toString());
-                        Gson gson = new Gson();
-                        New object = gson.fromJson(mJson, New.class);
-                        mNews.add(object);
-                    }
-                    mAdapter.notifyDataSetChanged();
-                    swipeRefreshLayout.setRefreshing(false);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                isLoading = false;
-                Log.wtf("onErrorResponse",error.toString());
                 swipeRefreshLayout.setRefreshing(false);
-                Utils.showErrorMessage(getContext(),error.toString());
-            }
-        });
-
-        SingleVolley.getInstance(getContext()).addToRequestQueue(request);
-    }
-
-    private void updateNews(final Location location, Long previous_id){
-        mCurrentLocation=location;
-        Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-
-
-        builder.appendQueryParameter("method","getNews");
-        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
-        if (location != null) {
-            builder.appendQueryParameter("longitude", String.valueOf(location.getLongitude()));
-            builder.appendQueryParameter("latitude", String.valueOf(location.getLatitude()));
-        }
-        if (null != previous_id){
-            builder.appendQueryParameter("last_news_id", String.valueOf(previous_id));
-        }
-        User user = mApp.getUser();
-        if (user.isConnected()){
-            builder.appendQueryParameter("user_id",user.getId());
-            builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccessKey());
-        }
-        String newsUrl=builder.build().toString();
-
-        Request request = new JsonObjectRequest(Request.Method.GET, newsUrl, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
                 Log.wtf("onResponse",response.toString());
-                try {
-                    JSONArray items = response.getJSONArray("items");
-                    for (int i=0;i<items.length();i++){
-                        JsonParser parser = new JsonParser();
-                        JsonElement mJson =  parser.parse(items.get(i).toString());
-                        Gson gson = new Gson();
-                        New object = gson.fromJson(mJson, New.class);
-                        mNews.add(object);
+                try{
+                    int error = response.getInt("error");
+                    if (error==0){
+                        JSONObject _response = response.getJSONObject("response");
+                        int _count = _response.getInt("count");
+                        if (_count>0){
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
+                                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                @Override
+                                public Date deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context)
+                                        throws JsonParseException {
+                                    try {
+                                        return df.parse(json.getAsString());
+                                    } catch (ParseException e) {
+                                        return null;
+                                    }
+                                }
+                            });
+                            Gson gson = gsonBuilder.create();
+
+                            JsonParser parser = new JsonParser();
+                            JSONArray items = _response.getJSONArray("items");
+                            for (int i=0;i<_count;i++){
+                                JsonElement mJson =  parser.parse(items.get(i).toString());
+                                Feed object = gson.fromJson(mJson, Feed.class);
+                                mFeed.add(object);
+                            }
+                        } else {
+                            // нет новостей
+                        }
+                    } else {
+                        Utils.showErrorMessage(getContext(),"get_feed"+error+"\n"+response.getString("error_text"));
                     }
                     mAdapter.notifyDataSetChanged();
-                    swipeRefreshLayout.setRefreshing(false);
-                } catch (JSONException e) {
+                } catch (Exception e) {
+                    Utils.showErrorMessage(getContext(),"get_feed JSONException: "+e.toString());
                     e.printStackTrace();
                 }
+                swipeRefreshLayout.setRefreshing(false);
                 isLoading=false;
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                isLoading = false;
-                Log.wtf("onErrorResponse",error.toString());
                 swipeRefreshLayout.setRefreshing(false);
-                Utils.showErrorMessage(getContext(),error.toString());
+                isLoading = false;
+                Log.wtf("get_feed onErrorResponse",error.toString());
+                Utils.showErrorMessage(getContext(),"get_blogs onErrorResponse: "+error.toString());
             }
         });
-
         SingleVolley.getInstance(getContext()).addToRequestQueue(request);
     }
 
@@ -295,14 +280,14 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                 .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
-                        updateNews(location);
+                        updateNews(location,0);
                     }
 
                 })
                 .addOnFailureListener(getActivity(), new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        updateNews(null);
+                        updateNews(null,0);
                     }
 
                 });
@@ -327,8 +312,8 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-(App.COUNT_CARDS/2)) {
                     mFabUp.hide();
                     isLoading=true;
-                    Log.wtf("onScrollChanged","Update news last_news_id = "+mNews.get(mNews.size() - 1).getId());
-                    updateNews(mCurrentLocation, mNews.get(mNews.size() - 1).getId());
+                    Log.wtf("onScrollChanged","Update news last_news_id = "+ mFeed.get(mFeed.size() - 1).getId());
+                    updateNews(mCurrentLocation, mFeed.get(mFeed.size() - 1).getId());
                 }
             }
         }

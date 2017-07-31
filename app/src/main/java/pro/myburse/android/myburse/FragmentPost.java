@@ -24,15 +24,23 @@ import com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.Model.User;
@@ -56,7 +64,7 @@ public class FragmentPost extends Fragment implements ObservableScrollViewCallba
     private long post_id;
 
     public FragmentPost(){
-       mPosts = new ArrayList<>();
+        mPosts = new ArrayList<>();
     }
 
     public static FragmentPost getInstance(long post_id){
@@ -91,7 +99,6 @@ public class FragmentPost extends Fragment implements ObservableScrollViewCallba
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRV.setLayoutManager(linearLayoutManager);
         mAdapter = new AdapterPost(mPosts);
-        //mAdapter.setMode(Attributes.Mode.Single);
         mRV.setAdapter(mAdapter);
         mRV.setScrollViewCallbacks(this);
 
@@ -145,9 +152,9 @@ public class FragmentPost extends Fragment implements ObservableScrollViewCallba
 
     private void updatePosts(long id){
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","getBlogPostData");
+        builder.appendQueryParameter("method","get_blog_post");
         User user = mApp.getUser();
-        builder.appendQueryParameter("user_id",user.getId());
+        builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
         builder.appendQueryParameter("device_id",user.getDeviceId());
         builder.appendQueryParameter("access_key",user.getAccessKey());
         builder.appendQueryParameter("post_id", String.valueOf(id));
@@ -158,21 +165,47 @@ public class FragmentPost extends Fragment implements ObservableScrollViewCallba
         Request request = new JsonObjectRequest(Request.Method.GET, postsUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Log.wtf("onResponse",response.toString());
+                swipeRefreshLayout.setRefreshing(false);
+                Log.wtf("onResponse get_blog_post",response.toString());
                 try {
-                    JSONArray items = response.getJSONArray("items");
-                    Gson gson = new Gson();
-                    JsonParser parser = new JsonParser();
-                    for (int i=0;i<items.length();i++){
-                        JsonElement mJson =  parser.parse(items.get(i).toString());
-                        Blog object = gson.fromJson(mJson, Blog.class);
-                        mPosts.add(object);
+                    int error = response.getInt("error");
+                    if (error==0){
+                        JSONObject _response = response.getJSONObject("response");
+                        int _count = _response.getInt("count");
+                        if (_count>0){
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
+                                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                @Override
+                                public Date deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context)
+                                        throws JsonParseException {
+                                    try {
+                                        return df.parse(json.getAsString());
+                                    } catch (ParseException e) {
+                                        return null;
+                                    }
+                                }
+                            });
+                            Gson gson = gsonBuilder.create();
+
+                            JsonParser parser = new JsonParser();
+                            JSONArray items = _response.getJSONArray("items");
+                            for (int i=0;i<items.length();i++){
+                                JsonElement mJson =  parser.parse(items.get(i).toString());
+                                Blog object = gson.fromJson(mJson, Blog.class);
+                                mPosts.add(object);
+                            }
+                        } else {
+                            // нет новостей
+                        }
+                    } else {
+                        Utils.showErrorMessage(getContext(),"get_blog_post "+error+"\n"+response.getString("error_text"));
                     }
                     mAdapter.notifyDataSetChanged();
-                    swipeRefreshLayout.setRefreshing(false);
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
+                isLoading=false;
             }
         }, new Response.ErrorListener() {
             @Override

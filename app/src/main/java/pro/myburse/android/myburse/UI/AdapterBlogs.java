@@ -2,8 +2,6 @@ package pro.myburse.android.myburse.UI;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -13,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -24,7 +21,6 @@ import java.util.ArrayList;
 
 import me.zhanghai.android.materialratingbar.MaterialRatingBar;
 import pro.myburse.android.myburse.App;
-import pro.myburse.android.myburse.FragmentProfile;
 import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.R;
 import pro.myburse.android.myburse.Utils.OttoMessage;
@@ -47,7 +43,7 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
     @Override
     public BlogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         mContext = parent.getContext();
-        View view = LayoutInflater.from(mContext).inflate(R.layout.card_shop, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.card, parent, false);
         return new BlogViewHolder(view);
     }
 
@@ -56,7 +52,7 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
         final Blog mBlog = mBlogs.get(position);
         ImageLoader imageLoader = SingleVolley.getInstance(mContext).getImageLoader();
 
-        imageLoader.get(mBlog.getOwnerAvatar(), new ImageLoader.ImageListener() {
+        imageLoader.get(mBlog.getOwner().getAvatarUrl(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mOwnerImage.setImageBitmap(response.getBitmap());
@@ -67,11 +63,13 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-        holder.mOwnerName.setText(mBlog.getOwnerName());
-        holder.mDateAdd.setText(mBlog.getDateAdd());
+        holder.mOwnerName.setText(mBlog.getOwner().getName());
+        holder.mItemType.setVisibility(View.GONE);
+        holder.mCreatedAt.setText(mBlog.getCreatedAtFormated());
+        holder.mUpdatedAt.setText(mBlog.getUpdatedAtFormated());
         holder.mTitle.setText(mBlog.getTitle());
 
-        imageLoader.get(mBlog.getImage(), new ImageLoader.ImageListener() {
+        imageLoader.get(mBlog.getImage().getUrl(), new ImageLoader.ImageListener() {
             @Override
             public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
                 holder.mImage.setImageBitmap(response.getBitmap());
@@ -82,11 +80,11 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
-        //holder.mPreview.setText(mNew.getText());
+        //holder.mText.setText(mNew.getText());
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N) {
-            holder.mPreview.setText(Html.fromHtml(mBlog.getText(), Html.FROM_HTML_MODE_COMPACT));
+            holder.mText.setText(Html.fromHtml(mBlog.getText(), Html.FROM_HTML_MODE_COMPACT));
         }else {
-            holder.mPreview.setText(Html.fromHtml(mBlog.getText()));
+            holder.mText.setText(Html.fromHtml(mBlog.getText()));
         }
       //  holder.mRating.setNumStars(5);
       //  holder.mRating.setRating(mBlog.getRating());
@@ -114,10 +112,12 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
         CardView cv;
         ImageView mOwnerImage;
         TextView mOwnerName;
-        TextView mDateAdd;
+        TextView mItemType;
+        TextView mCreatedAt;
+        TextView mUpdatedAt;
         TextView mTitle;
         ImageView mImage;
-        TextView mPreview;
+        TextView mText;
         MaterialRatingBar mRating;
         IconicsTextView mCounters;
 
@@ -125,14 +125,16 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
         private BlogViewHolder(View itemView) {
             super(itemView);
             cv =  itemView.findViewById(R.id.cv);
-            mOwnerImage = cv.findViewById(R.id.shop_owner_img);
-            mOwnerName = cv.findViewById(R.id.shop_owner_name);
-            mDateAdd = cv.findViewById(R.id.shop_date_add);
-            mTitle = cv.findViewById(R.id.shop_title);
-            mImage = cv.findViewById(R.id.shop_img);
-            mPreview = cv.findViewById(R.id.shop_preview);
-            mRating = cv.findViewById(R.id.shop_rating);
-            mCounters = cv.findViewById(R.id.shop_counters);
+            mOwnerImage = cv.findViewById(R.id.owner_avatar);
+            mItemType = cv.findViewById(R.id.item_type);
+            mOwnerName = cv.findViewById(R.id.owner_name);
+            mCreatedAt = cv.findViewById(R.id.created);
+            mUpdatedAt = cv.findViewById(R.id.updated);
+            mTitle = cv.findViewById(R.id.title);
+            mImage = cv.findViewById(R.id.image);
+            mText = cv.findViewById(R.id.text);
+            mRating = cv.findViewById(R.id.rating);
+            mCounters = cv.findViewById(R.id.counters);
 
         }
 

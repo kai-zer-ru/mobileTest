@@ -91,18 +91,18 @@ public class FragmentMyBurseLogin extends Fragment
                             if (response.getInt("error") == 0) {
                                 Log.wtf("MyBurseLogin", response.toString());
                                 try {
-                                    user.setId(response.getString("user_id"));
-                                    user.setFirstName(response.getString("firstname"));
-                                    user.setMiddleName(response.getString("middlename"));
-                                    user.setLastName(response.getString("lastname"));
+                                    user.setId(response.getInt("user_id"));
+                                    user.setFirstName(response.getString("first_name"));
+                                    user.setMiddleName(response.getString("middle_name"));
+                                    user.setLastName(response.getString("last_name"));
                                     user.setEmail(response.getString("email"));
                                     user.setLogin(response.getString("login"));
-                                    user.setPhone(response.getString("phone_number"));
+                                    user.setPhone(response.getString("phone"));
                                     user.setAccessKey(response.getString("access_key"));
                                     user.setBalanceBids(response.getInt("balance_bids"));
                                     user.setBalanceBonus(response.getInt("balance_bonus"));
                                     user.setBalanceMoney(response.getInt("balance_money"));
-                                    user.setUrlImage_50(response.getString("avatar"));
+                                    user.setUrlImage_50(response.getString("avatar_url"));
                                     mApp.setUser(user);
                                     mApp.setLogin(response.getString("login"));
                                     LoginActivity.hideProgress();
@@ -115,20 +115,20 @@ public class FragmentMyBurseLogin extends Fragment
                                 }
                             } else {
                                 LoginActivity.hideProgress();
-                                Utils.showErrorMessage(getContext(),"Ошибка: "+response.getInt("error")+" "+response.getString("error_text"));
+                                Utils.showErrorMessage(getContext(),"login "+response.getInt("error")+"/n"+response.getString("error_text"));
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
                             LoginActivity.hideProgress();
-                            Utils.showErrorMessage(getContext(),"Ошибка разбора: "+e.getMessage());
+                            Utils.showErrorMessage(getContext(),"login JSONException "+e.getMessage());
                         }
                     }
                 }, new com.android.volley.Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         LoginActivity.hideProgress();
-                        Log.wtf("onErrorResponse",error.toString());
-                        Utils.showErrorMessage(getContext(),error.toString());
+                        Log.wtf("login onErrorResponse",error.toString());
+                        Utils.showErrorMessage(getContext(),"login "+error.toString());
 
                     }
                 });

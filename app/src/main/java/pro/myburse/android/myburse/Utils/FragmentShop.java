@@ -1,18 +1,12 @@
-package pro.myburse.android.myburse;
+package pro.myburse.android.myburse.Utils;
 
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
@@ -29,10 +23,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -41,7 +31,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
-import com.squareup.otto.Subscribe;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -53,36 +42,36 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import pro.myburse.android.myburse.Model.Shop;
+import pro.myburse.android.myburse.App;
+import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.Model.User;
-import pro.myburse.android.myburse.UI.AdapterShops;
-import pro.myburse.android.myburse.Utils.OttoMessage;
-import pro.myburse.android.myburse.Utils.SingleVolley;
-import pro.myburse.android.myburse.Utils.Utils;
+import pro.myburse.android.myburse.R;
+import pro.myburse.android.myburse.UI.AdapterPost;
 
 
-public class FragmentShops extends Fragment implements ObservableScrollViewCallbacks{
+public class FragmentShop extends Fragment implements ObservableScrollViewCallbacks{
 
     private App mApp;
     private Bus Otto;
-    private ArrayList<Shop> mShops;
+    private ArrayList<Blog> mPosts;
     private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton mFabUp;
     private ObservableRecyclerView mRV;
-    private AdapterShops mAdapter;
-    private FusedLocationProviderClient mFusedLocationClient;
-    private final int PERMISSION_REQUEST_ACCESS_LOCATION = 0;
+    private AdapterPost mAdapter;
     private  LinearLayoutManager linearLayoutManager;
-    private Location mCurrentLocation;
     private boolean isLoading = false;
     private boolean alreadyLoaded = false;
+    private long post_id;
 
-    public FragmentShops(){
-       mShops = new ArrayList<>();
+    public FragmentShop(){
+        mPosts = new ArrayList<>();
     }
 
-    public static FragmentShops getInstance(){
-        FragmentShops fragment = new FragmentShops();
+    public static FragmentShop getInstance(long post_id){
+        FragmentShop fragment = new FragmentShop();
+        Bundle args = new Bundle();
+        args.putLong("post_id", post_id);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -93,6 +82,11 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         mApp = (App) getActivity().getApplication();
         Otto = mApp.getOtto();
         Otto.register(this);
+        if (getArguments()!=null){
+            post_id = getArguments().getLong("post_id");
+        } else{
+            post_id=-1;
+        }
     }
 
     @Nullable
@@ -104,8 +98,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         linearLayoutManager= new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mRV.setLayoutManager(linearLayoutManager);
-        mAdapter = new AdapterShops(mShops);
-        //mAdapter.setMode(Attributes.Mode.Single);
+        mAdapter = new AdapterPost(mPosts);
         mRV.setAdapter(mAdapter);
         mRV.setScrollViewCallbacks(this);
 
@@ -113,9 +106,9 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mShops.clear();
+                mPosts.clear();
                 mAdapter.notifyDataSetChanged();
-                getCurrentLocation();
+                updatePosts(post_id);
             }
         });
 
@@ -131,6 +124,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         return viewRoot;
     }
 
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -142,47 +136,10 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState==null && !alreadyLoaded) {
             alreadyLoaded = true;
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
-            if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                        PERMISSION_REQUEST_ACCESS_LOCATION);
-            } else {
-                swipeRefreshLayout.setRefreshing(true);
-                mShops.clear();
-                mAdapter.notifyDataSetChanged();
-                getCurrentLocation();
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_ACCESS_LOCATION: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    getCurrentLocation();
-                } else {
-                    updateShops(null,0);
-                }
-                return;
-            }
-        }
-    }
-
-    @Subscribe
-    public void OttoDispatch(OttoMessage msg){
-        switch (msg.getAction()){
-            case "getShops":{
-                swipeRefreshLayout.setRefreshing(true);
-                mShops.clear();
-                mAdapter.notifyDataSetChanged();
-                getCurrentLocation();
-            }
-            default:{
-
-            }
+            swipeRefreshLayout.setRefreshing(true);
+            mPosts.clear();
+            mAdapter.notifyDataSetChanged();
+            updatePosts(post_id);
         }
     }
 
@@ -192,31 +149,24 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         Otto.unregister(this);
     }
 
-    private void updateShops(final Location location, long last_id){
-        mCurrentLocation=location;
-        Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","get_shops");
-        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
-        if (location != null) {
-            builder.appendQueryParameter("filter[longitude]", String.valueOf(location.getLongitude()));
-            builder.appendQueryParameter("filter[latitude]", String.valueOf(location.getLatitude()));
-        }
-        if (0 != last_id){
-            builder.appendQueryParameter("last_id", String.valueOf(last_id));
-        }
-        User user = mApp.getUser();
-        if (user.isConnected()){
-            builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
-            builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccessKey());
-        }
-        String newsUrl=builder.build().toString();
 
-        Request request = new JsonObjectRequest(Request.Method.GET, newsUrl, new Response.Listener<JSONObject>() {
+    private void updatePosts(long id){
+        Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
+        builder.appendQueryParameter("method","get_blog_post");
+        User user = mApp.getUser();
+        builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
+        builder.appendQueryParameter("device_id",user.getDeviceId());
+        builder.appendQueryParameter("access_key",user.getAccessKey());
+        builder.appendQueryParameter("post_id", String.valueOf(id));
+
+
+        String postsUrl=builder.build().toString();
+
+        Request request = new JsonObjectRequest(Request.Method.GET, postsUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 swipeRefreshLayout.setRefreshing(false);
-                Log.wtf("onResponse get_shops",response.toString());
+                Log.wtf("onResponse get_blog_post",response.toString());
                 try {
                     int error = response.getInt("error");
                     if (error==0){
@@ -242,16 +192,16 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
                             JSONArray items = _response.getJSONArray("items");
                             for (int i=0;i<items.length();i++){
                                 JsonElement mJson =  parser.parse(items.get(i).toString());
-                                Shop object = gson.fromJson(mJson, Shop.class);
-                                mShops.add(object);
+                                Blog object = gson.fromJson(mJson, Blog.class);
+                                mPosts.add(object);
                             }
                         } else {
-                        // нет новостей
+                            // нет новостей
                         }
-                } else {
-                    Utils.showErrorMessage(getContext(),"get_shops "+error+"\n"+response.getString("error_text"));
-                }
-                        mAdapter.notifyDataSetChanged();
+                    } else {
+                        Utils.showErrorMessage(getContext(),"get_blog_post "+error+"\n"+response.getString("error_text"));
+                    }
+                    mAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -260,39 +210,17 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                swipeRefreshLayout.setRefreshing(false);
                 isLoading = false;
-                Log.wtf("get_shops onErrorResponse",error.toString());
+                Log.wtf("onErrorResponse",error.toString());
+                swipeRefreshLayout.setRefreshing(false);
                 Utils.showErrorMessage(getContext(),error.toString());
-
             }
         });
 
         SingleVolley.getInstance(getContext()).addToRequestQueue(request);
     }
 
-    public void getCurrentLocation() {
-        mFabUp.hide();
-        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        updateShops(location,0);
-                    }
 
-                })
-                .addOnFailureListener(getActivity(), new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        updateShops(null,0);
-                    }
-
-                });
-    }
 
     @Override
     public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
@@ -311,7 +239,7 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
                 if ((visibleItemCount + pastVisiblesItems) >= totalItemCount-(App.COUNT_CARDS/2)) {
                     isLoading=true;
                     mFabUp.hide();
-                    updateShops(mCurrentLocation, mShops.get(mShops.size() - 1).getId());
+                    updatePosts(post_id);
                 }
             }
         }
@@ -334,5 +262,10 @@ public class FragmentShops extends Fragment implements ObservableScrollViewCallb
                 mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
             }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
     }
 }

@@ -24,7 +24,11 @@ import com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
@@ -33,7 +37,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import pro.myburse.android.myburse.Model.Blog;
 import pro.myburse.android.myburse.Model.User;
@@ -94,7 +103,7 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
             public void onRefresh() {
                 mBlogs.clear();
                 mAdapter.notifyDataSetChanged();
-                updateBlogs();
+                updateBlogs(0);
             }
         });
 
@@ -102,8 +111,8 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
         mFabUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
                 linearLayoutManager.scrollToPositionWithOffset(0,0);
+                mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
             }
         });
         mFabUp.hide();
@@ -125,7 +134,7 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
             swipeRefreshLayout.setRefreshing(true);
             mBlogs.clear();
             mAdapter.notifyDataSetChanged();
-            updateBlogs();
+            updateBlogs(0);
         }
     }
 
@@ -136,7 +145,7 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
                 swipeRefreshLayout.setRefreshing(true);
                 mBlogs.clear();
                 mAdapter.notifyDataSetChanged();
-                updateBlogs();
+                updateBlogs(0);
             }
             default:{
 
@@ -150,95 +159,74 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
         Otto.unregister(this);
     }
 
-
-    private void updateBlogs(){
+    private void updateBlogs(long last_id){
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","getBlogs");
+        builder.appendQueryParameter("method","get_blogs");
         builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
+        if (last_id!=0){
+            builder.appendQueryParameter("last_id", String.valueOf(last_id));
+        }
         User user = mApp.getUser();
         if (user.isConnected()){
-            builder.appendQueryParameter("user_id",user.getId());
+            builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
             builder.appendQueryParameter("device_id",user.getDeviceId());
             builder.appendQueryParameter("access_key",user.getAccessKey());
         }
-
         String blogsUrl=builder.build().toString();
 
         Request request = new JsonObjectRequest(Request.Method.GET, blogsUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                Log.wtf("onResponse",response.toString());
+                Log.wtf("get_blogs onResponse",response.toString());
                 try {
-                    JSONArray items = response.getJSONArray("items");
-                    Gson gson = new Gson();
-                    JsonParser parser = new JsonParser();
-                    for (int i=0;i<items.length();i++){
-                        JsonElement mJson =  parser.parse(items.get(i).toString());
-                        Blog object = gson.fromJson(mJson, Blog.class);
-                        mBlogs.add(object);
+                    int error = response.getInt("error");
+                    if (error==0){
+                        JSONObject _response = response.getJSONObject("response");
+                        int _count = _response.getInt("count");
+                        if (_count>0){
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
+                                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                @Override
+                                public Date deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context)
+                                        throws JsonParseException {
+                                    try {
+                                        return df.parse(json.getAsString());
+                                    } catch (ParseException e) {
+                                        return null;
+                                    }
+                                }
+                            });
+                            Gson gson = gsonBuilder.create();
+
+                            JsonParser parser = new JsonParser();
+                            JSONArray items = _response.getJSONArray("items");
+                            for (int i=0;i<_count;i++){
+                                JsonElement mJson =  parser.parse(items.get(i).toString());
+                                Blog object = gson.fromJson(mJson, Blog.class);
+                                mBlogs.add(object);
+                            }
+                        } else {
+                            // нет блогов)
+                        }
+                    } else {
+                        Utils.showErrorMessage(getContext(),"get_blogs"+error+"\n"+response.getString("error_text"));
                     }
                     mAdapter.notifyDataSetChanged();
-                    swipeRefreshLayout.setRefreshing(false);
-                } catch (JSONException e) {
+                } catch (Exception e) {
+                    Utils.showErrorMessage(getContext(),"get_blogs JSONException: "+e.toString());
                     e.printStackTrace();
                 }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                isLoading = false;
-                Log.wtf("onErrorResponse",error.toString());
                 swipeRefreshLayout.setRefreshing(false);
-                Utils.showErrorMessage(getContext(),error.toString());
-            }
-        });
-
-        SingleVolley.getInstance(getContext()).addToRequestQueue(request);
-    }
-
-    private void updateBlogs(Long previous_id){
-        Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-        builder.appendQueryParameter("method","getBlogs");
-        builder.appendQueryParameter("limit", String.valueOf(App.COUNT_CARDS));
-        if (null != previous_id){
-            builder.appendQueryParameter("offset", String.valueOf(previous_id));
-        }
-        User user = mApp.getUser();
-        if (user.isConnected()){
-            builder.appendQueryParameter("user_id",user.getId());
-            builder.appendQueryParameter("device_id",user.getDeviceId());
-            builder.appendQueryParameter("access_key",user.getAccessKey());
-        }
-        String blogsUrl=builder.build().toString();
-
-        Request request = new JsonObjectRequest(Request.Method.GET, blogsUrl, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.wtf("onResponse",response.toString());
-                try {
-                    JSONArray items = response.getJSONArray("items");
-                    for (int i=0;i<items.length();i++){
-                        JsonParser parser = new JsonParser();
-                        JsonElement mJson =  parser.parse(items.get(i).toString());
-                        Gson gson = new Gson();
-                        Blog object = gson.fromJson(mJson, Blog.class);
-                        mBlogs.add(object);
-                    }
-                    mAdapter.notifyDataSetChanged();
-                    swipeRefreshLayout.setRefreshing(false);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
                 isLoading=false;
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 isLoading = false;
-                Log.wtf("onErrorResponse",error.toString());
+                Log.wtf("get_blogs onErrorResponse",error.toString());
                 swipeRefreshLayout.setRefreshing(false);
-                Utils.showErrorMessage(getContext(),error.toString());
-
+                Utils.showErrorMessage(getContext(),"get_blogs onErrorResponse: "+error.toString());
             }
         });
 
