@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.iconics.IconicsDrawable;
@@ -68,7 +69,13 @@ public class MainActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Config.REGISTRATION_COMPLETE)) {
                     Log.wtf("BroadcastReceiver","DEVICE_ID updated " + intent.getStringExtra("token"));
-                    mApp.setDeviceId(intent.getStringExtra("token"));
+                    String device_id = mApp.getDeviceId();
+                    if (device_id!=null&&device_id.equals(intent.getStringExtra("token"))){
+                        // не поменялся, можно попробовать войти
+                        Toast.makeText(MainActivity.this, "Тут попытка входа в сеть", Toast.LENGTH_SHORT).show();
+                    } else {
+                        mApp.setDeviceId(intent.getStringExtra("token"));
+                    }
 
                 } else if (intent.getAction().equals(Config.PUSH_NOTIFICATION)) {
                     NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
@@ -211,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
         mUser = mApp.getUser();
         if (mUser!=null&&mUser.isConnected()&&
                 mUser.getDeviceId().equals(mApp.getDeviceId())){
-            updateProfile(savedInstanceState==null);
+            updateProfile(mUser, savedInstanceState==null);
         }
 
         checkNavigationIcon();
@@ -354,7 +361,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             switch (msg.getAction()) {
                 case "updateProfile": {
-                    updateProfile(true);
+                    User user = (User) msg.getData();
+                    updateProfile(user, true);
                     Otto.post(new OttoMessage("getNews",null));
                     Otto.post(new OttoMessage("getShops",null));
                     break;
@@ -383,15 +391,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateProfile(boolean openDrawer){
-        mUser = mApp.getUser();
+    private void updateProfile(User user, boolean openDrawer){
+        user.setDeviceId(mApp.getDeviceId());
+        mApp.setUser(user);
+        mApp.setUserId(user.getId());
+
         final IProfile profile = new ProfileDrawerItem()
-                .withEmail(mUser.getEmail())
-                .withName(mUser.getName());
-        if (mUser.getUrlImage_50()!=null) {
-            profile.withIcon(Uri.parse(mUser.getUrlImage_50()));
-        } else if (mUser.getUrlImage()!=null){
-            profile.withIcon(Uri.parse(mUser.getUrlImage()));
+                .withEmail(user.getEmail())
+                .withName(user.getName());
+        if (user.getAvatarUrl()!=null) {
+            profile.withIcon(Uri.parse(user.getAvatarUrl()));
         }
         mAccountHeader.getProfiles().clear();
         mAccountHeader.removeProfile(0);

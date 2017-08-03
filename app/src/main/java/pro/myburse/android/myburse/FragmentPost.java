@@ -154,9 +154,11 @@ public class FragmentPost extends Fragment implements ObservableScrollViewCallba
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
         builder.appendQueryParameter("method","get_blog_post");
         User user = mApp.getUser();
-        builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
-        builder.appendQueryParameter("device_id",user.getDeviceId());
-        builder.appendQueryParameter("access_key",user.getAccessKey());
+        if (user!=null) {
+            builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
+            builder.appendQueryParameter("device_id", user.getDeviceId());
+            builder.appendQueryParameter("access_key", user.getAccessKey());
+        }
         builder.appendQueryParameter("post_id", String.valueOf(id));
 
 

@@ -203,9 +203,9 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
             builder.appendQueryParameter("last_id", String.valueOf(previous_id));
         }
         User user = mApp.getUser();
-        if (user.isConnected()){
+        if (user!=null){
             builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
-            builder.appendQueryParameter("device_id",user.getDeviceId());
+            builder.appendQueryParameter("device_id",mApp.getDeviceId());
             builder.appendQueryParameter("access_key",user.getAccessKey());
         }
         String newsUrl=builder.build().toString();
@@ -298,9 +298,9 @@ public class FragmentNews extends Fragment implements ObservableScrollViewCallba
         //mFabUp.show();
         if(scrollY<0) {
             if (linearLayoutManager.findFirstVisibleItemPosition() > 0) {
-                mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start();
+                mFabUp.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2)).start(); //show
             } else {
-                mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start();
+                mFabUp.animate().translationY(mFabUp.getHeight() + 16).setInterpolator(new AccelerateInterpolator(2)).start(); //hide
             }
         }
         if(scrollY > 0) {

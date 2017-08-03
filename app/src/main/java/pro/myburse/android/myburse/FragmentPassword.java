@@ -10,7 +10,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -41,25 +42,22 @@ import pro.myburse.android.myburse.Utils.OttoMessage;
 import pro.myburse.android.myburse.Utils.SingleVolley;
 import pro.myburse.android.myburse.Utils.Utils;
 
-public class FragmentProfile extends Fragment {
-    private final static String ARG_USER_ID = "user_id";
-    private TextInputEditText tvId, tvFirstName, tvLastName, tvPhone, tvEmail, tvBirthday, tvSocialType;
-    private ImageView ivImage;
+public class FragmentPassword extends Fragment {
+    private final static String ARG_USER_PWD = "user_password";
+    private TextInputEditText tvPasswd, tvPasswdNew, tvPasswdConfirm;
     private Bus Otto;
     private App mApp;
-    private long mUserId;
-    private User mUser;
-    private TextInputEditText tvMiddleName;
+    private String mOldPasswd;
 
-    public FragmentProfile() {
+    public FragmentPassword() {
     }
 
-    public static FragmentProfile getInstance(long user_id){
-        Fragment fragment = new FragmentProfile();
+    public static FragmentPassword getInstance(String passwd){
+        Fragment fragment = new FragmentPassword();
         Bundle args = new Bundle();
-        args.putLong(ARG_USER_ID, user_id);
+        args.putString(ARG_USER_PWD, passwd);
         fragment.setArguments(args);
-        return (FragmentProfile) fragment;
+        return (FragmentPassword) fragment;
     }
 
 
@@ -68,7 +66,7 @@ public class FragmentProfile extends Fragment {
         super.onCreate(savedInstanceState);
         // mUserId == 0 - текущий юзер, иначе другой
         if (getArguments()!=null){
-            mUserId = getArguments().getLong(ARG_USER_ID);
+            mOldPasswd = getArguments().getString(ARG_USER_PWD);
         }
         mApp = (App) getActivity().getApplication();
         Otto = mApp.getOtto();
@@ -77,16 +75,31 @@ public class FragmentProfile extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View viewRoot = inflater.inflate(R.layout.fragment_profile, container, false);
-        ivImage = viewRoot.findViewById(R.id.ivImage);
-        tvId = viewRoot.findViewById(R.id.id);
-        tvFirstName = viewRoot.findViewById(R.id.firstName);
-        tvMiddleName = viewRoot.findViewById(R.id.middleName);
-        tvLastName = viewRoot.findViewById(R.id.lastName);
-        tvSocialType = viewRoot.findViewById(R.id.socialType);
-        tvPhone = viewRoot.findViewById(R.id.phone);
-        tvEmail = viewRoot.findViewById(R.id.email);
-        tvBirthday = viewRoot.findViewById(R.id.birthday);
+        View viewRoot = inflater.inflate(R.layout.fragment_password, container, false);
+        tvPasswd = viewRoot.findViewById(R.id.passwd);
+        if (mOldPasswd!=null){
+            tvPasswd.setText(mOldPasswd);
+        }
+        tvPasswdNew = viewRoot.findViewById(R.id.passwd_new);
+        tvPasswdConfirm = viewRoot.findViewById(R.id.passwd_confirm);
+
+        tvPasswdNew.setError(null);
+
+        Button btnPasswd = viewRoot.findViewById(R.id.btnPassword);
+        btnPasswd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String new_passwd = tvPasswdNew.getText().toString();
+                //boolean cont = new_passwd.equals(tvPasswdConfirm.getText());
+                if (new_passwd.equals(tvPasswdConfirm.getText().toString())) {
+                    Toast.makeText(getContext(), "TODO FragmentPassword->setPassword("+new_passwd+")", Toast.LENGTH_SHORT).show();
+                    getActivity().onBackPressed();
+                } else{
+                    tvPasswdNew.setError("Пароли не совпадают!");
+                    tvPasswdNew.requestFocus();
+                }
+            }
+        });
         return viewRoot;
     }
 
@@ -95,14 +108,14 @@ public class FragmentProfile extends Fragment {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState==null) {
             //Otto.post(new OttoMessage("getProfile",mUserId));
-            getProfile(mUserId);
+            //getProfile(mUserId);
         }
     }
 
-    private void getProfile(long id){
+    private void setPassword(String new_password){
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
-
-        if (id==0){
+// TODO реализовать запрос на изменение пароля
+/*        if (new_password == null){
             builder.appendQueryParameter("method","get_my_data");
         } else{
             builder.appendQueryParameter("method","get_user_data");
@@ -164,10 +177,14 @@ public class FragmentProfile extends Fragment {
                             tvFirstName.setText(mUser.getFirstName());
                             tvMiddleName.setText(mUser.getMiddleName());
                             tvLastName.setText(mUser.getLastName());
-                            tvSocialType.setText(String.valueOf(mUser.getSocialType()));
+//                            tvSocialNetworkId.setText(String.valueOf(mUser.getSocialNetworkId()));
+                            tvSocialNetworkName.setText(mUser.getSocialType());
+                            //tvExtId.setText(mUser.getSocialId());
+                            //tvDeviceId.setText(mApp.getDeviceId());
                             tvPhone.setText(mUser.getPhone());
                             tvEmail.setText(mUser.getEmail());
-                            tvBirthday.setText(mUser.getBirthday());
+                            tvBirthday.setText(mUser.getBirthday().toString());
+                            //tvPassword.setText(mUser.getPassword());
                         } else {
                             // нет юзеров
                         }
@@ -189,15 +206,15 @@ public class FragmentProfile extends Fragment {
 
         SingleVolley.getInstance(getContext()).addToRequestQueue(request);
 
-
+*/
     }
 
 
     @Subscribe
     public void OttoDispatch(OttoMessage msg){
         switch (msg.getAction()) {
-            case "getProfile": {
-                getProfile((long) msg.getData());
+            case "setNewPassword": {
+                setPassword((String) msg.getData());
                 break;
             }
             default: {

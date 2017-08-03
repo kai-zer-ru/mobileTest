@@ -63,6 +63,7 @@ public class AdapterBlogs extends RecyclerView.Adapter<AdapterBlogs.BlogViewHold
                 Log.wtf("ImageLoader","OnErrorResponse\n"+error.toString());
             }
         });
+//        holder.mOwnerImage
         holder.mOwnerName.setText(mBlog.getOwner().getName());
         holder.mItemType.setVisibility(View.GONE);
         holder.mCreatedAt.setText(mBlog.getCreatedAtFormated());

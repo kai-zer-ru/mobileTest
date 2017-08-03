@@ -1,6 +1,5 @@
 package pro.myburse.android.myburse;
 
-import android.*;
 import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -102,7 +101,6 @@ public class FragmentRegister extends Fragment {
                 mPhone = editPhoneNumber.getText().toString();
                 if (mPhone.startsWith("8")){
                     mPhone = "+7"+mPhone.substring(1);
-                    editPhoneNumber.setText(mPhone);
                 }
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                     mPhone = PhoneNumberUtils.formatNumber(mPhone);
@@ -146,6 +144,7 @@ public class FragmentRegister extends Fragment {
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
+                            btnSMS.setEnabled(true);
                             Utils.showErrorMessage(getContext(),"send_confirm_sms onErrorResponse "+error.toString());
                         }
                     });
@@ -212,55 +211,55 @@ public class FragmentRegister extends Fragment {
         builder.appendQueryParameter("method","confirm_code");
         builder.appendQueryParameter("code",sms);
         builder.appendQueryParameter("device_id",mApp.getDeviceId());
-        //builder.appendQueryParameter("user_id",mApp.getDeviceId());
 
         String phoneUrl=builder.build().toString();
-
+        LoginActivity.showProgress("Подождите...");
         final Request request = new JsonObjectRequest(Request.Method.GET, phoneUrl, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
+                btnConfirm.setEnabled(true);
+                btnSMS.setEnabled(true);
+
                 Log.wtf("confirm_code onResponse",response.toString());
-                final User mUser = new User();
-                mUser.setDeviceId(mApp.getDeviceId());
-                mUser.setPhone(mPhone);
-                try {
-                    mUser.setId(response.getInt("user_id"));
-                } catch (JSONException e) {
-                    Utils.showErrorMessage(getContext(),e.toString());
-                    e.printStackTrace();
-                }
-                mUser.setPassword(sms);
-                mApp.setUser(mUser);
+                LoginActivity.hideProgress();
                 try {
                     int error = response.getInt("error");
                     if (error==0){
-                        try {
+                        JSONObject _response = response.getJSONObject("response");
+                        int _count = _response.getInt("count");
+                        if (_count>0){
+                            JSONArray items = _response.getJSONArray("items");
+                            JSONObject session = (JSONObject) items.get(0);
+                            User user = new User();
+                            user.setId(session.getInt("id"));
+                            user.setAccessKey(session.getString("access_key"));
+                            mApp.setUser(user);
+                            Otto.post(new OttoMessage("updateProfile", user));
+                            //getActivity().onBackPressed();
+
+                            getActivity().getSupportFragmentManager().popBackStackImmediate();
+
                             getActivity().getSupportFragmentManager().beginTransaction()
                                     .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right)
-                                    .replace(R.id.container, FragmentProfile.getInstance())
+                                    .replace(R.id.container, FragmentPassword.getInstance(sms))
                                     .addToBackStack(null)
                                     .commit();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Utils.showErrorMessage(getContext(),"confirm_code "+ e.getMessage());
+                        } else {
+                            // нет юзера, нет ошибки..)
+                            Utils.showErrorMessage(getContext(),"confirm_code: "+response.toString());
                         }
-                        Otto.post(new OttoMessage("updateProfile", null));
                     } else {
-                        Utils.showErrorMessage(getContext(), "confirm_code "+String.valueOf(error)+"\n"+response.getString("error_text"));
-                        btnConfirm.setEnabled(true);
-                        btnSMS.setEnabled(true);
-
+                        Utils.showErrorMessage(getContext(),"confirm_code "+error+"\n"+response.getString("error_text"));
                     }
-                } catch (JSONException e) {
+                } catch (Exception e) {
+                    Utils.showErrorMessage(getContext(),"confirm_code Exception "+e.toString());
                     e.printStackTrace();
-                    Utils.showErrorMessage(getContext(),"confirm_code JSONException"+e.toString());
-                    btnConfirm.setEnabled(true);
-                    btnSMS.setEnabled(true);
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                LoginActivity.hideProgress();
                 Utils.showErrorMessage(getContext(),"confirm_code "+error.toString());
                 btnConfirm.setEnabled(true);
                 btnSMS.setEnabled(true);

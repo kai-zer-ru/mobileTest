@@ -31,7 +31,11 @@ import com.github.gorbin.asne.odnoklassniki.OkSocialNetwork;
 import com.github.gorbin.asne.vk.VKPerson;
 import com.github.gorbin.asne.vk.VkSocialNetwork;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.squareup.otto.Bus;
 import com.vk.sdk.api.VKApi;
@@ -46,10 +50,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import pro.myburse.android.myburse.Model.Blog;
@@ -222,9 +229,9 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                     break;
             }
         }
+//        int user_id = mApp.getId();
         User user = mApp.getUser();
-
-        if(user.getSocialNetworkId() ==0 && user.getId()!=0){
+        if(user!=null&&user.getSocialType() ==User.SOCIAL_MB && !user.isConnected()){
             btnMyBurse.setText("Вход MyBurse");
         }
     }
@@ -293,22 +300,21 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
             case
                 VkSocialNetwork.ID: {
                     final VKPerson vkPerson = (VKPerson) socialPerson;
-                    mUser.setExtId(vkPerson.id);
+                    mUser.setSocialId(vkPerson.id);
                     mUser.setFirstName(vkPerson.firstName);
                     mUser.setLastName(vkPerson.lastName);
                     mUser.setEmail(vkPerson.email);
                     mUser.setBirthday(vkPerson.birthday);
-                    mUser.setSocialNetworkName("ВКонтакте");
-                    mUser.setSocialNetworkId(App.SOCIAL_ID_VK);
+                    mUser.setSocialType(App.SOCIAL_ID_VK);
                     mUser.setPhone(vkPerson.mobilePhone);
-                    mUser.setUrlImage(vkPerson.avatarURL);
+                    mUser.setAvatarUrl(vkPerson.avatarURL);
                     VKRequest yourRequest = VKApi.users().get(VKParameters.from(VKApiConst.FIELDS, "photo_50"));
                     yourRequest.executeWithListener(new VKRequest.VKRequestListener() {
                         @Override
                         public void onComplete(VKResponse response) {
                             super.onComplete(response);
                             List usersArray = (VKList) response.parsedModel;
-                            mUser.setUrlImage_50(((VKApiUserFull) usersArray.get(0)).photo_50);
+                            mUser.setAvatarUrl(((VKApiUserFull) usersArray.get(0)).photo_50);
                             mApp.setUser(mUser);
                             registerSocialNetwork(mUser);
                         }
@@ -317,29 +323,27 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                 }
                 case OkSocialNetwork.ID:{
                     final OkPerson okPerson= (OkPerson) socialPerson;
-                    mUser.setExtId(okPerson.id);
+                    mUser.setSocialId(okPerson.id);
                     mUser.setFirstName(okPerson.firstName);
                     mUser.setLastName(okPerson.lastName);
                     mUser.setBirthday(okPerson.birthday);
-                    mUser.setSocialNetworkId(App.SOCIAL_ID_OK);
-                    mUser.setSocialNetworkName("Одноклассники");
+                    mUser.setSocialType(App.SOCIAL_ID_OK);
                     mUser.setEmail(okPerson.email);
-                    mUser.setUrlImage(okPerson.avatarURL);
+                    mUser.setAvatarUrl(okPerson.avatarURL);
                     mApp.setUser(mUser);
                     registerSocialNetwork(mUser);
                     break;
                 }
                 case FacebookSocialNetwork.ID:{
                     final FacebookPerson fbPerson= (FacebookPerson) socialPerson;
-                    mUser.setExtId(fbPerson.id);
+                    mUser.setSocialId(fbPerson.id);
                     mUser.setFirstName(fbPerson.firstName);
                     mUser.setMiddleName(fbPerson.middleName);
                     mUser.setLastName(fbPerson.lastName);
                     mUser.setBirthday(fbPerson.birthday);
-                    mUser.setSocialNetworkId(App.SOCIAL_ID_FB);
-                    mUser.setSocialNetworkName("Facebook");
+                    mUser.setSocialType(App.SOCIAL_ID_FB);
                     mUser.setEmail(fbPerson.email);
-                    mUser.setUrlImage(fbPerson.avatarURL);
+                    mUser.setAvatarUrl(fbPerson.avatarURL);
                     mApp.setUser(mUser);
                     registerSocialNetwork(mUser);
                     break;
@@ -405,15 +409,15 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
     private void registerSocialNetwork(final User user){
         Uri.Builder builder = Uri.parse(App.URL_BASE).buildUpon();
         builder.appendQueryParameter("method","social_callback");
-        builder.appendQueryParameter("social_type", String.valueOf(user.getSocialNetworkId()));
+        builder.appendQueryParameter("social_type", String.valueOf(user.getSocialType()));
         builder.appendQueryParameter("device_id", user.getDeviceId());
-        builder.appendQueryParameter("social_user_id", user.getExtId());
+        builder.appendQueryParameter("social_user_id", user.getSocialId());
         builder.appendQueryParameter("first_name", user.getFirstName());
         builder.appendQueryParameter("middle_name", user.getMiddleName());
         builder.appendQueryParameter("last_name", user.getLastName());
         builder.appendQueryParameter("birthday", user.getBirthday());
         builder.appendQueryParameter("email", (user.getEmail()==null)?"":user.getEmail());
-        builder.appendQueryParameter("avatar_url", (user.getUrlImage_50()==null)?user.getUrlImage():user.getUrlImage_50());
+        builder.appendQueryParameter("avatar_url", user.getAvatarUrl());
         String registerUrl=builder.build().toString();
 
         com.android.volley.Request request = new JsonObjectRequest(com.android.volley.Request.Method.GET, registerUrl, new com.android.volley.Response.Listener<JSONObject>() {
@@ -427,21 +431,28 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                         JSONObject _response = response.getJSONObject("response");
                         int _count = _response.getInt("count");
                         if (_count>0){
-                            JSONArray _items = _response.getJSONArray("items");
-                            JSONObject _user = (JSONObject) _items.get(0);
+                            GsonBuilder gsonBuilder = new GsonBuilder();
+                            gsonBuilder.registerTypeAdapter(Date.class, new JsonDeserializer<Date>() {
+                                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                @Override
+                                public Date deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context)
+                                        throws JsonParseException {
+                                    try {
+                                        return df.parse(json.getAsString());
+                                    } catch (ParseException e) {
+                                        return null;
+                                    }
+                                }
+                            });
+                            Gson gson = gsonBuilder.create();
 
-                            user.setId(_user.getInt("user_id"));
-                            user.setEmail(_user.getString("email"));
-                            user.setPhone(_user.getString("phone"));
-                            user.setAccessKey(_user.getString("access_key"));
-                            user.setBalanceBids(_user.getInt("balance_bids"));
-                            user.setBalanceBonus(_user.getInt("balance_bonus"));
-                            user.setBalanceMoney(_user.getInt("balance_money"));
-                            user.setUrlImage_50(_user.getString("avatar"));
-                            mApp.setUser(user);
-                            Otto.post(new OttoMessage("updateProfile", null));
+                            JsonParser parser = new JsonParser();
+                            JSONArray items = _response.getJSONArray("items");
+                            JsonElement mJson =  parser.parse(items.get(0).toString());
+                            User object = gson.fromJson(mJson, User.class);
+
+                            Otto.post(new OttoMessage("updateProfile", object));
                             getActivity().onBackPressed();
-
                         } else {
                             // нет юзера, нет ошибки..)
                             Utils.showErrorMessage(getContext(),"social_callback: "+response.toString());
@@ -449,8 +460,8 @@ public class FragmentLogin extends Fragment implements SocialNetworkManager.OnIn
                     } else {
                         Utils.showErrorMessage(getContext(),"social_callback "+error+"\n"+response.getString("error_text"));
                     }
-                } catch (JSONException e) {
-                    Utils.showErrorMessage(getContext(),"social_callback JSONException "+e.toString());
+                } catch (Exception e) {
+                    Utils.showErrorMessage(getContext(),"social_callback Exception "+e.toString());
                     e.printStackTrace();
                 }
             }

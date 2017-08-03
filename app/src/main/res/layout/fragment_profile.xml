@@ -23,7 +23,7 @@
     android:layout_height="match_parent">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
@@ -50,6 +50,16 @@
         android:layout_height="wrap_content"
         >
         <android.support.design.widget.TextInputEditText
+            android:id="@+id/middleName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="middleName" />
+    </android.support.design.widget.TextInputLayout>
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <android.support.design.widget.TextInputEditText
             android:id="@+id/lastName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -60,40 +70,10 @@
         android:layout_height="wrap_content"
         >
         <android.support.design.widget.TextInputEditText
-            android:id="@+id/socialNetworkId"
+            android:id="@+id/socialType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="socialNetworkId" />
-    </android.support.design.widget.TextInputLayout>
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/socialNetworkName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="socialNetworkName" />
-    </android.support.design.widget.TextInputLayout>
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/extId"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="extId" />
-    </android.support.design.widget.TextInputLayout>
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/deviceId"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="deviceId" />
+            android:hint="socialType" />
     </android.support.design.widget.TextInputLayout>
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
@@ -115,18 +95,6 @@
             android:layout_height="wrap_content"
             android:hint="email" />
     </android.support.design.widget.TextInputLayout>
-        <android.support.design.widget.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            >
-            <android.support.design.widget.TextInputEditText
-                android:id="@+id/password"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="password"
-                android:ems="10"
-                android:inputType="date"/>
-        </android.support.design.widget.TextInputLayout>
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

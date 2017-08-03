@@ -20,8 +20,6 @@ public class App extends Application {
     public final static int COUNT_CARDS=20;
     private static Bus Otto;
     private User mUser;
-    private String mDeviceId;
-    private String mLogin;
 
     @Override
     public void onCreate() {
@@ -33,42 +31,45 @@ public class App extends Application {
         return  Otto;
     }
 
-    public User getUser() {
+    public int getUserId() {
         SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
-        String user = pref.getString("user",null);
-        mUser = (user==null)?User.getInstance(): new Gson().fromJson(user, User.class);
+        int user_id = pref.getInt("user_id",0);
+        return user_id;
+    }
+
+    public void setUserId(int user_id) {
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putInt("user_id", user_id).apply();
+    }
+
+    public String getDeviceId() {
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        return pref.getString("device_id",null);
+    }
+
+   public void setDeviceId(String mDeviceId) {
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("device_id", mDeviceId).apply();
+    }
+
+/*    public String getSocli() {
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        return pref.getString("device_id",null);;
+    }
+
+    public void setDeviceId(String mDeviceId) {
+        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("device_id", mDeviceId).apply();
+    }*/
+
+    public User getUser() {
         return mUser;
     }
 
     public void setUser(User mUser) {
         this.mUser = mUser;
-        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString("user", new Gson().toJson(mUser)).apply();
-    }
-
-    public String getLogin() {
-        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
-        mLogin = pref.getString("login","");
-        return mLogin;
-    }
-
-    public void setLogin(String login) {
-        mLogin = login;
-        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString("login", login).apply();
-    }
-    public String getDeviceId() {
-        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
-        mDeviceId = pref.getString("device_id",null);
-        return mDeviceId;
-    }
-
-    public void setDeviceId(String mDeviceId) {
-        this.mDeviceId = mDeviceId;
-        SharedPreferences pref = getSharedPreferences(Config.SHARED_PREF, 0);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString("device_id", mDeviceId).apply();
     }
 }

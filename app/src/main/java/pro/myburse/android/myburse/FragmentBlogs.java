@@ -34,7 +34,6 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
@@ -167,7 +166,7 @@ public class FragmentBlogs extends Fragment implements ObservableScrollViewCallb
             builder.appendQueryParameter("last_id", String.valueOf(last_id));
         }
         User user = mApp.getUser();
-        if (user.isConnected()){
+        if (user!=null && user.isConnected()){
             builder.appendQueryParameter("user_id", String.valueOf(user.getId()));
             builder.appendQueryParameter("device_id",user.getDeviceId());
             builder.appendQueryParameter("access_key",user.getAccessKey());
